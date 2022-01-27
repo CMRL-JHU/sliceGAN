@@ -1,4 +1,4 @@
-Output/
+Output/*
 Input/*.txt
 Input/*.tif
 __pycache__/
