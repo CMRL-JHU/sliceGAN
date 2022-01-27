@@ -1,0 +1,157 @@
+{
+    "0": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Read DREAM.3D Data File",
+        "Filter_Name": "DataContainerReader",
+        "Filter_Uuid": "{043cbde5-3878-5718-958f-ae75714df0df}",
+        "InputFile": "C:\\Users\\nirahve\\Downloads\\school\\research\\SliceGAN\\SliceGAN\\Output\\Prior_Particles\\1-slicegan_data.dream3d",
+        "InputFileDataContainerArrayProxy": {
+            "Data Containers": [
+                {
+                    "Attribute Matricies": [
+                        {
+                            "Data Arrays": [
+                                {
+                                    "Component Dimensions": [
+                                        1
+                                    ],
+                                    "Flag": 2,
+                                    "Name": "GBManhattanDistances",
+                                    "Object Type": "DataArray<float>",
+                                    "Path": "/DataContainers/ImageDataContainer/CellData",
+                                    "Tuple Dimensions": [
+                                        127,
+                                        127,
+                                        128
+                                    ],
+                                    "Version": 2
+                                }
+                            ],
+                            "Flag": 2,
+                            "Name": "CellData",
+                            "Type": 3
+                        },
+                        {
+                            "Data Arrays": [
+                                {
+                                    "Component Dimensions": [
+                                        1
+                                    ],
+                                    "Flag": 2,
+                                    "Name": "CrystalStructures",
+                                    "Object Type": "DataArray<uint32_t>",
+                                    "Path": "/DataContainers/ImageDataContainer/CellEnsembleData",
+                                    "Tuple Dimensions": [
+                                        5
+                                    ],
+                                    "Version": 2
+                                },
+                                {
+                                    "Component Dimensions": [
+                                        6
+                                    ],
+                                    "Flag": 2,
+                                    "Name": "LatticeConstants",
+                                    "Object Type": "DataArray<float>",
+                                    "Path": "/DataContainers/ImageDataContainer/CellEnsembleData",
+                                    "Tuple Dimensions": [
+                                        5
+                                    ],
+                                    "Version": 2
+                                },
+                                {
+                                    "Component Dimensions": [
+                                        1
+                                    ],
+                                    "Flag": 2,
+                                    "Name": "MaterialName",
+                                    "Object Type": "StringDataArray",
+                                    "Path": "/DataContainers/ImageDataContainer/CellEnsembleData",
+                                    "Tuple Dimensions": [
+                                        5
+                                    ],
+                                    "Version": 2
+                                }
+                            ],
+                            "Flag": 2,
+                            "Name": "CellEnsembleData",
+                            "Type": 11
+                        }
+                    ],
+                    "Flag": 2,
+                    "Name": "ImageDataContainer",
+                    "Type": 0
+                }
+            ]
+        },
+        "OverwriteExistingDataContainers": 0
+    },
+    "1": {
+        "DestinationArrayName": "Error",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "GBManhattanDistances",
+                    "Comparison Operator": 0,
+                    "Comparison Value": 0.1,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "2": {
+        "DestinationArrayName": "Error_Mask",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "Error",
+                    "Comparison Operator": 2,
+                    "Comparison Value": 0,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "3": {
+        "FilterVersion": "1.0.123",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Clear Data (Mask)",
+        "Filter_Name": "ClearDataMask",
+        "Filter_Uuid": "{39df0167-1ef8-5e01-8702-c08c8afba1c0}",
+        "MaskArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "Error_Mask",
+            "Data Container Name": "ImageDataContainer"
+        }
+    },
+    "4": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Write DREAM.3D Data File",
+        "Filter_Name": "DataContainerWriter",
+        "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
+        "OutputFile": "C:\\Users\\nirahve\\Downloads\\school\\research\\SliceGAN\\SliceGAN\\Output\\Prior_Particles\\2-slicegan_data.dream3d",
+        "WriteTimeSeries": 0,
+        "WriteXdmfFile": 1
+    },
+    "PipelineBuilder": {
+        "Name": "1-slicegan_data-gbdistances",
+        "Number_Filters": 5,
+        "Version": 6
+    }
+}

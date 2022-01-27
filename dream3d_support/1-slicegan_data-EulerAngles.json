@@ -1,0 +1,188 @@
+{
+    "0": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Read DREAM.3D Data File",
+        "Filter_Name": "DataContainerReader",
+        "Filter_Uuid": "{043cbde5-3878-5718-958f-ae75714df0df}",
+        "InputFile": "C:\\Users\\nirahve\\Desktop\\ghosh software\\SliceGAN\\Output\\Prior_Particles\\1-slicegan_data.dream3d",
+        "InputFileDataContainerArrayProxy": {
+            "Data Containers": [
+            ]
+        },
+        "OverwriteExistingDataContainers": 0
+    },
+    "1": {
+        "DestinationArrayName": "Error",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "EulerAnglesSum",
+                    "Comparison Operator": 0,
+                    "Comparison Value": 0.01,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "2": {
+        "DestinationArrayName": "Error_Mask",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "Error",
+                    "Comparison Operator": 2,
+                    "Comparison Value": 0,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "3": {
+        "FilterVersion": "1.0.123",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Clear Data (Mask)",
+        "Filter_Name": "ClearDataMask",
+        "Filter_Uuid": "{39df0167-1ef8-5e01-8702-c08c8afba1c0}",
+        "MaskArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "Error_Mask",
+            "Data Container Name": "ImageDataContainer"
+        }
+    },
+    "4": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Write DREAM.3D Data File",
+        "Filter_Name": "DataContainerWriter",
+        "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
+        "OutputFile": "C:/Users/nirahve/Desktop/ghosh software/SliceGAN/Output/Prior_Particles/2-slicegan_data.dream3d",
+        "WriteTimeSeries": 0,
+        "WriteXdmfFile": 1
+    },
+    "5": {
+        "CompNumber": 0,
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Extract Component as Attribute Array",
+        "Filter_Name": "ExtractComponentAsArray",
+        "Filter_Uuid": "{79d59b85-01e8-5c4a-a6e1-3fd3e2ceffb4}",
+        "NewArrayArrayName": "EulerAngleX",
+        "SelectedArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer"
+        }
+    },
+    "6": {
+        "CalculatedArray": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngleX255",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Attribute Array Calculator",
+        "Filter_Name": "ArrayCalculator",
+        "Filter_Uuid": "{7ff0ebb3-7b0d-5ff7-b9d8-5147031aca10}",
+        "InfixEquation": "EulerAngleX*255/(2*3.1415927)",
+        "ScalarType": 9,
+        "SelectedAttributeMatrix": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "Units": 1
+    },
+    "7": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Convert AttributeArray Data Type",
+        "Filter_Name": "ConvertData",
+        "Filter_Uuid": "{f4ba5fa4-bb5c-5dd1-9429-0dd86d0ecb37}",
+        "OutputArrayName": "EulerAngleX255",
+        "ScalarType": 1,
+        "SelectedCellArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngleX255",
+            "Data Container Name": "ImageDataContainer"
+        }
+    },
+    "8": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Generate Color Table",
+        "Filter_Name": "GenerateColorTable",
+        "Filter_Uuid": "{0d0a6535-6565-51c5-a3fc-fbc00008606d}",
+        "RgbArrayName": "EulerAngleX255Jet",
+        "SelectedDataArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngleX255",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "SelectedPresetControlPoints": [
+            -1,
+            0,
+            0,
+            0.5625,
+            -0.777778,
+            0,
+            0,
+            1,
+            -0.269841,
+            0,
+            1,
+            1,
+            -0.015873,
+            0.5,
+            1,
+            0.5,
+            0.238095,
+            1,
+            1,
+            0,
+            0.746032,
+            1,
+            0,
+            0,
+            1,
+            0.5,
+            0,
+            0
+        ],
+        "SelectedPresetName": "jet"
+    },
+    "9": {
+        "FileName": "C:/Users/nirahve/Downloads/school/research/SliceGAN/SliceGAN/dream3d_support/pipeline_output/slices.png",
+        "FilterVersion": "1.0.496",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "ITK::Image Writer",
+        "Filter_Name": "ITKImageWriter",
+        "Filter_Uuid": "{11473711-f94d-5d96-b749-ec36a81ad338}",
+        "ImageArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngleX255Jet",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "Plane": 0
+    },
+    "PipelineBuilder": {
+        "Name": "1-slicegan_data-EulerAngles",
+        "Number_Filters": 10,
+        "Version": 6
+    }
+}

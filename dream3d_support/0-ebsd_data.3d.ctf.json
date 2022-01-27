@@ -1,0 +1,445 @@
+{
+    "00": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Pipeline Annotation",
+        "Filter_Name": "PipelineAnnotation",
+        "Filter_Uuid": "{8cc2198b-6a9d-5bf4-b8c0-b0878bb57f10}",
+        "Summary": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">YZ Plane</p></body></html>"
+    },
+    "01": {
+        "CellAttributeMatrixName": "CellData",
+        "CellEnsembleAttributeMatrixName": "CellEnsembleData",
+        "DataContainerName": "ImageDataContainer_YZ",
+        "DegreesToRadians": 1,
+        "EdaxHexagonalAlignment": 1,
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Import Oxford Instr. EBSD Data (.ctf)",
+        "Filter_Name": "ReadCtfData",
+        "Filter_Uuid": "{d1df969c-0428-53c3-b61d-99ea2bb6da28}",
+        "InputFile": "C:\\Users\\nirahve\\Desktop\\ghosh software\\SliceGAN\\Input\\Prior_Particles\\ebsd\\AA7050 YZ DepositionDirection_Bottom to Top_LargeMap.ctf"
+    },
+    "02": {
+        "CellAttributeMatrixPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "",
+            "Data Container Name": "ImageDataContainer_YZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Sample Reference Frame",
+        "Filter_Name": "RotateSampleRefFrame",
+        "Filter_Uuid": "{e25d9b4c-2b37-578c-b1de-cf7032b5ef19}",
+        "RotationAngle": 180,
+        "RotationAxis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+        }
+    },
+    "03": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_YZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": 0,
+        "RotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+        }
+    },
+    "04": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_YZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": -90,
+        "RotationAxis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+        }
+    },
+    "05": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_YZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": 90,
+        "RotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+        }
+    },
+    "06": {
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Convert Orientation Representation",
+        "Filter_Name": "ConvertOrientations",
+        "Filter_Uuid": "{e5629880-98c4-5656-82b8-c9fe2b9744de}",
+        "InputOrientationArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_YZ"
+        },
+        "InputType": 0,
+        "OutputOrientationArrayName": "Quats",
+        "OutputType": 2
+    },
+    "07": {
+        "DestinationArrayName": "Mask",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer_YZ",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "Error",
+                    "Comparison Operator": 2,
+                    "Comparison Value": 0,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "08": {
+        "FilterVersion": "1.0.123",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Clear Data (Mask)",
+        "Filter_Name": "ClearDataMask",
+        "Filter_Uuid": "{39df0167-1ef8-5e01-8702-c08c8afba1c0}",
+        "MaskArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "Mask",
+            "Data Container Name": "ImageDataContainer_YZ"
+        }
+    },
+    "09": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Pipeline Annotation",
+        "Filter_Name": "PipelineAnnotation",
+        "Filter_Uuid": "{8cc2198b-6a9d-5bf4-b8c0-b0878bb57f10}",
+        "Summary": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">XZ Plane</p></body></html>"
+    },
+    "10": {
+        "CellAttributeMatrixName": "CellData",
+        "CellEnsembleAttributeMatrixName": "CellEnsembleData",
+        "DataContainerName": "ImageDataContainer_XZ",
+        "DegreesToRadians": 1,
+        "EdaxHexagonalAlignment": 1,
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Import Oxford Instr. EBSD Data (.ctf)",
+        "Filter_Name": "ReadCtfData",
+        "Filter_Uuid": "{d1df969c-0428-53c3-b61d-99ea2bb6da28}",
+        "InputFile": "C:\\Users\\nirahve\\Desktop\\ghosh software\\SliceGAN\\Input\\Prior_Particles\\ebsd\\AA7050 YZ DepositionDirection_Bottom to Top_LargeMap.ctf"
+    },
+    "11": {
+        "CellAttributeMatrixPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "",
+            "Data Container Name": "ImageDataContainer_XZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Sample Reference Frame",
+        "Filter_Name": "RotateSampleRefFrame",
+        "Filter_Uuid": "{e25d9b4c-2b37-578c-b1de-cf7032b5ef19}",
+        "RotationAngle": 180,
+        "RotationAxis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+        }
+    },
+    "12": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": 0,
+        "RotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+        }
+    },
+    "13": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": -90,
+        "RotationAxis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+        }
+    },
+    "14": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XZ"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": 0,
+        "RotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+        }
+    },
+    "15": {
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Convert Orientation Representation",
+        "Filter_Name": "ConvertOrientations",
+        "Filter_Uuid": "{e5629880-98c4-5656-82b8-c9fe2b9744de}",
+        "InputOrientationArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XZ"
+        },
+        "InputType": 0,
+        "OutputOrientationArrayName": "Quats",
+        "OutputType": 2
+    },
+    "16": {
+        "DestinationArrayName": "Mask",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer_XZ",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "Error",
+                    "Comparison Operator": 2,
+                    "Comparison Value": 0,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "17": {
+        "FilterVersion": "1.0.123",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Clear Data (Mask)",
+        "Filter_Name": "ClearDataMask",
+        "Filter_Uuid": "{39df0167-1ef8-5e01-8702-c08c8afba1c0}",
+        "MaskArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "Mask",
+            "Data Container Name": "ImageDataContainer_XZ"
+        }
+    },
+    "18": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Pipeline Annotation",
+        "Filter_Name": "PipelineAnnotation",
+        "Filter_Uuid": "{8cc2198b-6a9d-5bf4-b8c0-b0878bb57f10}",
+        "Summary": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">XY Plane</p></body></html>"
+    },
+    "19": {
+        "CellAttributeMatrixName": "CellData",
+        "CellEnsembleAttributeMatrixName": "CellEnsembleData",
+        "DataContainerName": "ImageDataContainer_XY",
+        "DegreesToRadians": 1,
+        "EdaxHexagonalAlignment": 1,
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Import Oxford Instr. EBSD Data (.ctf)",
+        "Filter_Name": "ReadCtfData",
+        "Filter_Uuid": "{d1df969c-0428-53c3-b61d-99ea2bb6da28}",
+        "InputFile": "C:\\Users\\nirahve\\Desktop\\ghosh software\\SliceGAN\\Input\\Prior_Particles\\ebsd\\AA7050 XY Specimen 1 Site 1 Map Data 1.ctf"
+    },
+    "20": {
+        "CellAttributeMatrixPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "",
+            "Data Container Name": "ImageDataContainer_XY"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Sample Reference Frame",
+        "Filter_Name": "RotateSampleRefFrame",
+        "Filter_Uuid": "{e25d9b4c-2b37-578c-b1de-cf7032b5ef19}",
+        "RotationAngle": 180,
+        "RotationAxis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+        }
+    },
+    "21": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XY"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": 0,
+        "RotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+        }
+    },
+    "22": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XY"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": 0,
+        "RotationAxis": {
+            "x": 1,
+            "y": 0,
+            "z": 0
+        }
+    },
+    "23": {
+        "CellEulerAnglesArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XY"
+        },
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Rotate Euler Reference Frame",
+        "Filter_Name": "RotateEulerRefFrame",
+        "Filter_Uuid": "{ef9420b2-8c46-55f3-8ae4-f53790639de4}",
+        "RotationAngle": 0,
+        "RotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+        }
+    },
+    "24": {
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Convert Orientation Representation",
+        "Filter_Name": "ConvertOrientations",
+        "Filter_Uuid": "{e5629880-98c4-5656-82b8-c9fe2b9744de}",
+        "InputOrientationArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer_XY"
+        },
+        "InputType": 0,
+        "OutputOrientationArrayName": "Quats",
+        "OutputType": 2
+    },
+    "25": {
+        "DestinationArrayName": "Mask",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer_XY",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "Error",
+                    "Comparison Operator": 2,
+                    "Comparison Value": 0,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "26": {
+        "FilterVersion": "1.0.123",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Clear Data (Mask)",
+        "Filter_Name": "ClearDataMask",
+        "Filter_Uuid": "{39df0167-1ef8-5e01-8702-c08c8afba1c0}",
+        "MaskArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "Mask",
+            "Data Container Name": "ImageDataContainer_XY"
+        }
+    },
+    "27": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": false,
+        "Filter_Human_Label": "Pipeline Annotation",
+        "Filter_Name": "PipelineAnnotation",
+        "Filter_Uuid": "{8cc2198b-6a9d-5bf4-b8c0-b0878bb57f10}",
+        "Summary": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Output</p></body></html>"
+    },
+    "28": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Write DREAM.3D Data File",
+        "Filter_Name": "DataContainerWriter",
+        "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
+        "OutputFile": "C:\\Users\\nirahve\\Desktop\\ghosh software\\SliceGAN\\dream3d_support\\pipeline_output\\0-ebsd_data.dream3d",
+        "WriteTimeSeries": 0,
+        "WriteXdmfFile": 1
+    },
+    "PipelineBuilder": {
+        "Name": "0-ebsd_data",
+        "Number_Filters": 29,
+        "Version": 6
+    }
+}

@@ -1,0 +1,12 @@
+changed lays to 4:
+
+	Traceback (most recent call last):
+	  File "C:\Users\nirahve\Downloads\school\research\SliceGAN\optimize_hyperparameters\server\SliceGAN\run_slicegan.py", line 132, in <module>
+		model.train(path_input, Project_path, image_type, datasets, netD, netG, img_channels, img_size, z_channels, n_dims)
+	  File "C:\Users\nirahve\Downloads\school\research\SliceGAN\optimize_hyperparameters\server\SliceGAN\slicegan\model.py", line 102, in train
+		lz = util.find_min_input_size_deconvolution(netG.kernel_size,netG.stride,netG.padding,"lz",l)
+	  File "C:\Users\nirahve\Downloads\school\research\SliceGAN\optimize_hyperparameters\server\SliceGAN\slicegan\util.py", line 260, in find_min_input_size_deconvolution
+		raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
+	ValueError: Malformed kernel size or stride caused non-integer value for lz. Cannot resolve.
+
+utils_json cannot handle pipeline annotations in dream3d pipelines. interprets "\n"
