@@ -145,13 +145,105 @@
         "Filter_Human_Label": "Write DREAM.3D Data File",
         "Filter_Name": "DataContainerWriter",
         "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
-        "OutputFile": "C:\\Users\\nirahve\\Downloads\\school\\research\\SliceGAN\\SliceGAN\\Output\\Prior_Particles\\2-slicegan_data.dream3d",
+        "OutputFile": "C:/Users/nirahve/Downloads/school/research/SliceGAN/SliceGAN/Output/Prior_Particles/2-slicegan_data.dream3d",
         "WriteTimeSeries": 0,
         "WriteXdmfFile": 1
     },
+    "5": {
+        "CalculatedArray": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "GBManhattanDistances255",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Attribute Array Calculator",
+        "Filter_Name": "ArrayCalculator",
+        "Filter_Uuid": "{7ff0ebb3-7b0d-5ff7-b9d8-5147031aca10}",
+        "InfixEquation": "GBManhattanDistances*255",
+        "ScalarType": 9,
+        "SelectedAttributeMatrix": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "Units": 1
+    },
+    "6": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Convert AttributeArray Data Type",
+        "Filter_Name": "ConvertData",
+        "Filter_Uuid": "{f4ba5fa4-bb5c-5dd1-9429-0dd86d0ecb37}",
+        "OutputArrayName": "GBManhattanDistances255",
+        "ScalarType": 1,
+        "SelectedCellArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "GBManhattanDistances255",
+            "Data Container Name": "ImageDataContainer"
+        }
+    },
+    "7": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Generate Color Table",
+        "Filter_Name": "GenerateColorTable",
+        "Filter_Uuid": "{0d0a6535-6565-51c5-a3fc-fbc00008606d}",
+        "RgbArrayName": "GBManhattanDistances255Jet",
+        "SelectedDataArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "GBManhattanDistances255",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "SelectedPresetControlPoints": [
+            -1,
+            0,
+            0,
+            0.5625,
+            -0.777778,
+            0,
+            0,
+            1,
+            -0.269841,
+            0,
+            1,
+            1,
+            -0.015873,
+            0.5,
+            1,
+            0.5,
+            0.238095,
+            1,
+            1,
+            0,
+            0.746032,
+            1,
+            0,
+            0,
+            1,
+            0.5,
+            0,
+            0
+        ],
+        "SelectedPresetName": "jet"
+    },
+    "8": {
+        "FileName": "C:\\Users\\nirahve\\Downloads\\school\\research\\SliceGAN\\SliceGAN\\dream3d_support\\pipeline_output\\slices.png",
+        "FilterVersion": "1.0.496",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "ITK::Image Writer",
+        "Filter_Name": "ITKImageWriter",
+        "Filter_Uuid": "{11473711-f94d-5d96-b749-ec36a81ad338}",
+        "ImageArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "GBManhattanDistances255Jet",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "Plane": 0
+    },
     "PipelineBuilder": {
-        "Name": "1-slicegan_data-gbdistances",
-        "Number_Filters": 5,
+        "Name": "1-slicegan_data-GBManhattanDistances",
+        "Number_Filters": 9,
         "Version": 6
     }
 }
