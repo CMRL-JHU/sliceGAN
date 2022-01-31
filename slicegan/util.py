@@ -247,8 +247,6 @@ def test_img(pth, imtype, netG, n_dims, nc, output_type, nz = 64, lf = 4, period
         if periodic[2]:
             gb = gb[:,:,:-1]
     tif = np.int_(gb)
-
-    pth + '.txt'
     
     # find shape data
     shape = list(tif.shape)
