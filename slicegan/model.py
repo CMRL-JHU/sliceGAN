@@ -8,6 +8,31 @@ import time
 import matplotlib
 matplotlib.use('Agg')
 import json
+#wandb.login() must be performed on the machine to store login information under .netrc
+import wandb, netrc
+
+wandb_support = True
+wandb_username = "josh_stickel"
+wandb_projectname = "SliceGAN"
+
+def initialize_wandb(data):
+
+    # check that user has logged in
+    if not "api.wandb.ai" in netrc.netrc().hosts
+        raise RuntimeError("No wandb entry in \".netrc\". User has not logged into wandb on this machine before.")
+
+    # initialize and specify hyperparameters to log
+    wandb.init(project=wandb_projectname, entity=wandb_username)
+    wandb.config = {
+        "batch_size": data["batch_size"],
+        "lrg"       : data["lrg"       ],
+        "lrd"       : data["lrd"       ],
+        "G_beta_1"  : data["G_beta_1"  ],
+        "G_beta_2"  : data["G_beta_2"  ],
+        "D_beta_1"  : data["D_beta_1"  ],
+        "D_beta_2"  : data["D_beta_2"  ],
+        "Lambda"    : data["Lambda"    ]
+    }
 
 def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Normalize=True, split_graphs=False):
 
@@ -55,6 +80,10 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
     
     G_betas = [G_beta_1, G_beta_2]
     D_betas = [D_beta_1, D_beta_2]
+    
+    # Wandb Integration
+    if wandb_support:
+        initialize_wandb(data)
     
     if n_dims == 2:
         n_planes = 1
@@ -181,6 +210,14 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 disc_loss_log[dim][0] += [out_real.item()]; disc_loss_log[dim][1] += [out_fake.item()]
                 Wass_log[dim] += [out_real.item()-out_fake.item()]
                 gp_log[dim] += [gradient_penalty.item()]
+                
+                if wandb_support:
+                    wandb.log({
+                        "Discriminator loss - Real": out_real.item(),
+                        "Discriminator loss - Fake": out_fake.item(),
+                        "Wasserstein Distance"     : out_real.item()-out_fake.item(),
+                        "Gradient Penalty"         : gradient_penalty.item()
+                        })
             
             ### Generator Training
             #in a wasserstein gan, the critic (unlike the discriminator) cannot overpower the generator
