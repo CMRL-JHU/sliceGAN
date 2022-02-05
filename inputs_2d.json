@@ -17,8 +17,8 @@
 		"plane_suffixes"    : ["_XY"],
 		"plane_rotations"   : [0],
 		"tif_names"         : "AA7050",
-		"orientations_types": ["Quats", "GBManhattanDistances"],
-		"orientations_names": ["Quats", "GBManhattanDistances"],
+		"orientations_types": ["Quats"],
+		"orientations_names": ["Quats"],
 		"plot_orientations" : false,
 		"periodic"          : false,
 		"lf"                : 6
@@ -26,7 +26,7 @@
 	"model":{
 		"num_epochs"  : 20,
 		"critic_iters": 5,
-		"batch_size"  : 64,
+		"batch_size"  : 4,
 		"ngpu"        : 1,
 		"workers"     : 0,
 		"lrg"         : 0.0001,

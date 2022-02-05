@@ -13,7 +13,7 @@ import json
 # Run with False to show an image during or after training
 parser = argparse.ArgumentParser()
 parser.add_argument('training', type=int)
-parser.add_argument("--inp", dest="path_input", default="inputs_2d.json", type=str, help="Specify input file location")
+parser.add_argument("--inp", dest="path_input", default="inputs_3d.json", type=str, help="Specify input file location")
 args       = parser.parse_args()
 Training   = args.training
 path_input = args.path_input

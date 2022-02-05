@@ -22,7 +22,7 @@ def import_data_ebsd_reference(path_dream3d_input, VolumeDataContainer_Path, ori
             #because there are 3 images in the source file, each data container is a plane represented by two basis vectors trailing the path name (X,Y,Z)
             name_planes      += [filter_string(DataContainer.name, [VolumeDataContainer_Path], "xyzXYZ").lower()]
             #each image is 2D, so the spacing in Z dimension is inconsequential
-            size_voxels      += DataContainer["_SIMPL_GEOMETRY/SPACING"][:-1].tolist()
+            size_voxels      += [DataContainer["_SIMPL_GEOMETRY/SPACING"][:-1].tolist()]
             CellEnsembleData.append(DataContainer["CellEnsembleData"])
         path_crystallography = CellEnsembleData[0].name
         

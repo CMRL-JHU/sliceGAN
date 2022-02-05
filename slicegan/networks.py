@@ -102,13 +102,17 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
             self.stride      = ds
             self.padding     = dp
             for lay, (k, s, p) in enumerate(zip(self.kernel_size,self.stride,self.padding)):
+                # Convolve and rectify the input image
                 self.modules.append(nn.Conv2d(df[lay], df[lay + 1], k, s, p, bias=False))
-                # self.modules.append(nn.Conv2d   (df[lay], df[lay + 1], 1, 1, 0, bias=False))
-                # self.modules.append(nn.MaxPool2d(2, 2, 0))
-                # self.modules.append(nn.ReLU())
-                self.modules.append(nn.LeakyReLU(dns)) ########## Testing
-            #keep the last Conv, ditch the rest
-            #self.modules = self.modules[:-1]
+                self.modules.append(nn.LeakyReLU(dns))
+            
+            # Previous will output [nc x 1] tensor.
+            # Flatten to ready for Linear
+            # Linear to learn from each of the (nc) outputs
+            # self.modules.append(nn.Flatten(start_dim=1, end_dim=-1))
+            # self.modules.append(nn.Linear(img_channels, 1))
+            
+            # Combine the modules into a sequential network
             self.sequential = nn.Sequential(*self.modules)
         def forward(self, x):
             x = self.sequential(x)

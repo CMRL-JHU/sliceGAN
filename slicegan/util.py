@@ -56,7 +56,7 @@ def weights_init(m):
         nn.init.normal_(m.weight.data, 1.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
 
-def calc_gradient_penalty(netD, real_data, fake_data, batch_size, l, device, gp_lambda,nc):
+def calc_gradient_penalty(netD, real_data, fake_data, batch_size, l, device, gp_lambda, nc):
     """
     calculate gradient penalty for a batch of real and fake data
     :param netD: Discriminator network
@@ -69,24 +69,11 @@ def calc_gradient_penalty(netD, real_data, fake_data, batch_size, l, device, gp_
     :param nc: channels
     :return: gradient penalty
     """
+    
     #sample and reshape random numbers
     alpha = torch.rand(batch_size, 1, device = device)
-    alpha = alpha.expand(-1, nc*l*l).contiguous()
-    alpha = alpha.view(batch_size, nc, l, l)
-    
-    # previously here:
-    # alpha = alpha.expand(-1, int(real_data.nelement() / batch_size)).contiguous()
-    # alpha = alpha.view(batch_size, nc, l, l)
-
-    ############## Exploring how to change padding/lz to allow changes in other hyperparameters ########################
-    # string = \
-        # "real data: "+str(real_data.size())+"\n"+ \
-        # "real_n_ele: "+str(real_data.nelement())+"\n"+ \
-        # "over batch: "+str(real_data.nelement()/batch_size)+"\n"+ \
-        # "alpha:     "+str(alpha.size())    +"\n"+ \
-        # "fake data: "+str(fake_data.size())+"\n"   
-    # print(string)
-    ####################################################################################################################
+    alpha = alpha.expand(-1, real_data.nelement()//batch_size).contiguous()
+    alpha = alpha.view(-1, nc, l, l)
     
     #create interpolate dataset
     interpolates = alpha * real_data.detach() + ((1 - alpha) * fake_data.detach())
@@ -158,7 +145,7 @@ def post_proc(img,imtype):
     if imtype == 'grayscale':
         return 255*img[0][0]
 
-def test_plotter(img,slcs,imtype,pth):
+def test_plotter(img,imtype,pth,n_dims=3,slcs=5):
     """
     creates a fig with 3*slc subplots showing example slices along the three axes
     :param img: raw input image
@@ -166,29 +153,41 @@ def test_plotter(img,slcs,imtype,pth):
     :param imtype: image type
     :param pth: where to save plot
     """
+
     img = post_proc(img,imtype)
-    fig, axs = plt.subplots(slcs, 3)
-    if imtype == 'colour':
-        for j in range(slcs):
-            axs[j, 0].imshow(img[j, :, :, :], vmin = 0, vmax = 255)
-            axs[j, 1].imshow(img[:, j, :, :],  vmin = 0, vmax = 255)
-            axs[j, 2].imshow(img[:, :, j, :],  vmin = 0, vmax = 255)
-    elif imtype == 'grayscale':
-        for j in range(slcs):
-            axs[j, 0].imshow(img[j, :, :], cmap = 'gray')
-            axs[j, 1].imshow(img[:, j, :], cmap = 'gray')
-            axs[j, 2].imshow(img[:, :, j], cmap = 'gray')
-    else:
-        for j in range(slcs):
-            axs[j, 0].imshow(img[j, :, :])
-            axs[j, 1].imshow(img[:, j, :])
-            axs[j, 2].imshow(img[:, :, j])
+    
+    if n_dims == 2:
+        if imtype == 'colour':
+            plt.imshow(img, vmin = 0, vmax = 255)
+        elif imtype == 'grayscale':
+            plt.imshow(img, cmap = 'gray')
+        else:
+            plt.imshow(img)
+    
+    if n_dims == 3:
+        fig, axs = plt.subplots(slcs, 3)
+        if imtype == 'colour':
+            for j in range(slcs):
+                axs[j, 0].imshow(img[j, :, :, :], vmin = 0, vmax = 255)
+                axs[j, 1].imshow(img[:, j, :, :], vmin = 0, vmax = 255)
+                axs[j, 2].imshow(img[:, :, j, :], vmin = 0, vmax = 255)
+        elif imtype == 'grayscale':
+            for j in range(slcs):
+                axs[j, 0].imshow(img[j, :, :], cmap = 'gray')
+                axs[j, 1].imshow(img[:, j, :], cmap = 'gray')
+                axs[j, 2].imshow(img[:, :, j], cmap = 'gray')
+        else:
+            for j in range(slcs):
+                axs[j, 0].imshow(img[j, :, :])
+                axs[j, 1].imshow(img[:, j, :])
+                axs[j, 2].imshow(img[:, :, j])
+    
     plt.savefig(pth + '_slices.png')
     plt.close()
 
 def permute(*strings): #used in plotting loss graphs if not splitting graphs
     strings = list(itertools.product(*strings))
-    strings = ['_'.join(string) for string in strings]
+    strings = [' '.join(string) for string in strings]
     return strings
 
 def graph_plot(data,labels,pth,name):

@@ -8,17 +8,23 @@ import time
 import matplotlib
 matplotlib.use('Agg')
 import json
+import itertools
+
 #wandb.login() must be performed on the machine to store login information under .netrc
 import wandb, netrc
+# import pytorch_lightning as pl
+# import torchmetrics
+# pl.seed_everything(hash("setting random seeds") % 2**32 - 1)
+# from pytorch_lightning.loggers import WandbLogger
 
-wandb_support = True
+wandb_support = False
 wandb_username = "josh_stickel"
 wandb_projectname = "SliceGAN"
 
 def initialize_wandb(data):
 
     # check that user has logged in
-    if not "api.wandb.ai" in netrc.netrc().hosts
+    if not "api.wandb.ai" in netrc.netrc().hosts:
         raise RuntimeError("No wandb entry in \".netrc\". User has not logged into wandb on this machine before.")
 
     # initialize and specify hyperparameters to log
@@ -85,43 +91,49 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
     if wandb_support:
         initialize_wandb(data)
     
+    # Fill in plane information for 2D or 3D
     if n_dims == 2:
         n_planes = 1
         plane_names = ['Z']
+        c_perm = [
+            [0, 1, 2, 3] # don't permute
+        ]
+        # The discriminator batch size is a portion of the generator batch size following: n*2^(n_planes-1)=batch_size ==> n
+        D_batch_size = int(batch_size/(2**(n_planes-1)))
+        shape_disc = [D_batch_size, nc, l, l]
+        shape_gen  = [batch_size  , nc, l, l]
     elif n_dims == 3:
         n_planes = 3
         plane_names = ['X','Y','Z']
         # permutation constants to convert 3D volume into a batch of 2D images
         c_perm = [
-            [0, 2, 1, 3, 4],
-            [0, 3, 1, 2, 4],
-            [0, 4, 1, 2, 3]
+            [0, 2, 1, 3, 4], # last 3 indecies are now [nc,y,z] -> x normal 
+            [0, 3, 1, 2, 4], # last 3 indecies are now [nc,x,z] -> y normal
+            [0, 4, 1, 2, 3]  # last 3 indecies are now [nc,x,y] -> z normal
         ]
-        ########## should write something to specify isotropy dimensions ##########
-        # if len(datasets) == 1:
-            # datasets *= 3
-            # isotropic = True
-        # else:
-            # isotropic = False
-            
-    # The discriminator batch size is a portion of the generator batch size following: n*2^(n_planes-1)=batch_size ==> n
-    D_batch_size = int(batch_size/(2**(n_planes-1)))
-    
+        # The discriminator batch size is a portion of the generator batch size following: n*2^(n_planes-1)=batch_size ==> n
+        D_batch_size = int(batch_size/(2**(n_planes-1)))
+        shape_disc = [l * D_batch_size, nc, l, l] # combine batch size and slice normal plane (turn the entire unused direction into batches)
+        shape_gen  = [l * batch_size  , nc, l, l]
+
     ########## change to something with "torch.cuda.device_count()" ##########
-    ##Switch to cuda if available
+    ## Switch to cuda if available
     device = torch.device("cuda:0" if(torch.cuda.is_available() and ngpu > 0) else "cpu")
     if(torch.cuda.device_count() > 0 and torch.cuda.is_available()):
         print(torch.cuda.device_count(), " ", device, " devices will be used")
     else:
         print(device, " will be used.")
 
-    ##Dataloaders for each orientation
+    ## Dataloaders for each orientation
     # D trained using different data for x, y and z directions
     dataloader = []
     for i in range(n_planes):
         dataloader.append(
-            torch.utils.data.DataLoader(datasets[i], batch_size=batch_size,
-                                        shuffle=True, num_workers=workers)
+            torch.utils.data.DataLoader(
+                datasets[i],
+                batch_size=batch_size,
+                num_workers=workers
+            )
         )
 
     # Create the Genetator network and Generator optimizer
@@ -146,10 +158,8 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
             netD = (nn.DataParallel(netD, list(range(ngpu))))
         netDs.append(netD)
         optDs.append(optim.Adam(netDs[i].parameters(), lr=lrd, betas=D_betas))
-        
 
-    print("Starting Training Loop...")
-    
+    # Initialize logging variables
     disc_loss_log = []
     gp_log = []
     Wass_log = []
@@ -158,66 +168,75 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
         gp_log.append([])
         Wass_log.append([])
     
-    # For each epoch
+    # Log start time to calculate ETA
     time_start = time.time()
+    
+    print("Starting Training Loop...")
+    
     for epoch in range(num_epochs):
     
         # sample data for each direction
         for i, dataset in enumerate(list(zip(*dataloader)), 1):
 
-            ### Initialize Discriminator
-            ## Generate a noise vector
-            noise = torch.randn(D_batch_size, nz, *[lz]*n_dims, device=device)
-            ## Generate fake image batch with G
+            ## Generate a noise and fake image
             # Only one generation is needed because all 3 (orthogonal) discriminators will use it
-            fake_data = netG(noise).detach()
-            
-            for dim, (netD, optD, data) in enumerate(zip(netDs, optDs, dataset)):
+            noise = torch.randn(D_batch_size, nz, *[lz]*n_dims, device=device)
+            print("noise shape: ",noise.shape)
+            # Must be detached because otherwise it become associated with the first discriminator's graph
+            # and cannot be called again for the 2nd and 3rd discriminator
+            data_fake = netG(noise).detach()
+            print("fake data shape: ",data_fake.shape)
+
+            for netD, optD, data_real, c_perm_dim in zip(netDs, optDs, dataset, c_perm):
                 
-                # ########## should write something to specify isotropy dimensions ##########
-                # ########## there will be tripling of discriminator iterations in this implementation ##########
-                # if isotropic:
-                    # netD = netDs[0]
-                    # optD = optDs[0]
-                
-                #zero out the gradient                
+                # Zero out the gradient
                 netD.zero_grad()
                 
-                ###forward pass
+                ### Forward pass
                 ## train on real images
-                real_data = data[0].to(device)
-                out_real = netD(real_data).view(-1).mean()
+                data_real = data_real[0].to(device)
+                ############################################### this mean doesn't make sense. ############################################################
+                ###################### It just jams the data from all of the channels together and averages them #########################################
+                print("real data shape:",data_real.shape)
+                out_real = netD(data_real).mean()
+                print("real data discriminator output: ",out_real)
+                print("real data discriminator output shape: ",out_real.shape)
+                ## perform permutation + reshape to turn volume into batch of 2D images to pass to D
+                print("permutation constant: ",c_perm_dim)
+                data_fake_perm = data_fake.permute(*c_perm_dim).reshape(*shape_disc)
+                print("fake data permuted shape: ", data_fake_perm.shape)
                 ## train on fake images
-                if n_dims == 2:
-                    fake_data_perm = fake_data
-                if n_dims == 3:
-                    # perform permutation + reshape to turn volume into batch of 2D images to pass to D
-                    fake_data_perm = fake_data.permute(*c_perm[dim]).reshape(l * D_batch_size, nc, l, l).to(device) ########## added a .to(device) here because it was previously detached ##########
-                out_fake = netD(fake_data_perm).mean()
+                out_fake = netD(data_fake_perm).mean()
+                print("fake data discriminator output: ",out_fake)
+                print("fake data discriminator output shape: ",out_fake.shape)
                 ## loss criterion for wgan (as opposed to BCEWithLogitsLoss for gan)
-                gradient_penalty = util.calc_gradient_penalty(netD, real_data, fake_data_perm[:batch_size],
+                gradient_penalty = util.calc_gradient_penalty(netD, data_real, data_fake_perm[:batch_size],
                                                                       batch_size, l,
                                                                       device, Lambda, nc)
+                print("gradient penalty: ", gradient_penalty)
+                print("gradient penalty shape: ", gradient_penalty.shape)
                 disc_cost = out_fake - out_real + gradient_penalty
                 
-                ## gradient descent
-                # calculate the gradient
+                ### Backward pass
                 disc_cost.backward()
-                # follow (descend into) the gradient
+                
+                ### Step the optimizer
                 optD.step()
+            
+            #collect losses
+            disc_loss_log[dim][0] += [out_real.item()]; disc_loss_log[dim][1] += [out_fake.item()]
+            Wass_log[dim] += [out_real.item()-out_fake.item()]
+            gp_log[dim] += [gradient_penalty.item()]
+            
+            if wandb_support:
+                wandb.log({
+                    "Discriminator loss - Real": out_real.item(),
+                    "Discriminator loss - Fake": out_fake.item(),
+                    "Wasserstein Distance"     : out_real.item()-out_fake.item(),
+                    "Gradient Penalty"         : gradient_penalty.item()
+                    })
                 
-                #collect losses
-                disc_loss_log[dim][0] += [out_real.item()]; disc_loss_log[dim][1] += [out_fake.item()]
-                Wass_log[dim] += [out_real.item()-out_fake.item()]
-                gp_log[dim] += [gradient_penalty.item()]
-                
-                if wandb_support:
-                    wandb.log({
-                        "Discriminator loss - Real": out_real.item(),
-                        "Discriminator loss - Fake": out_fake.item(),
-                        "Wasserstein Distance"     : out_real.item()-out_fake.item(),
-                        "Gradient Penalty"         : gradient_penalty.item()
-                        })
+            
             
             ### Generator Training
             #in a wasserstein gan, the critic (unlike the discriminator) cannot overpower the generator
@@ -225,68 +244,117 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
             #this is why it looks backwards in comparison to a normal gan.
             if i % int(critic_iters) == 0:
                 
+                # generate noise and fake image
+                noise = torch.randn(batch_size, nz, *[lz]*n_dims, device=device)
+                data_fake = netG(noise)
+                
                 # zero out the gradient
                 netG.zero_grad()
                 errG = 0
-                
+
                 #forward pass
-                noise = torch.randn(batch_size, nz, *[lz]*n_dims, device=device)
-                fake = netG(noise)
-                #
-                for dim, netD in enumerate(netDs):
-                        
-                    # ########## should write something to specify isotropy dimensions ##########
-                    # if isotropic:
-                        # #only need one D
-                        # netD = netDs[0]
-                    
+                for netD, c_perm_dim in zip(netDs, c_perm):
                     # permute and reshape to feed to disc
-                    if n_dims == 2:
-                        fake_data_perm = fake
-                    elif n_dims == 3:
-                        fake_data_perm = fake.permute(*c_perm[dim]).reshape(l * batch_size, nc, l, l)
-                    output = netD(fake_data_perm)
-                    errG -= output.mean()
+                    data_fake_perm = data_fake.permute(*c_perm_dim).reshape(*shape_gen)
+                    output = netD(data_fake_perm).mean()
+                    errG -= output
                     
-                # gradient descent
+                # backward pass
                 errG.backward()
+                
+                # step the optimizer
                 optG.step()
+                
 
             # Output training stats & show imgs
             if( i % 25 == 0 or i == num_epochs - 1):
+            
                 netG.eval() #turn off training mode
                 with torch.no_grad():
                 
-                    #save model weights
-                    torch.save(netG.state_dict(), pth + '_Gen.pt')
-                    for dim, netD in enumerate(netDs):
-                        torch.save(netD.state_dict(), pth + '_Disc_'+plane_names[dim]+'.pt')
+                    # Save the generator and discriminator weights
+                    save_weights(pth, plane_names, netG, netDs)
 
-                    ###Print progress
-                    ## calc ETA
-                    steps = len(dataloader[0])
-                    util.calc_eta(steps, time.time(), time_start, i, epoch, num_epochs)
+                    # Save graphs of loss related data
+                    graphs = {
+                        "LossGraph":{
+                            "data":disc_loss_log,
+                            "labels": ["Real Dataset Error", "Generated Dataset Error"]
+                            },
+                        "WassGraph":{
+                            "data":Wass_log,
+                            "labels": ["Wasserstein Distance"]
+                            },
+                        "GpGraph":{
+                            "data":gp_log,
+                            "labels":["Gradient Penalty"]
+                            }
+                        }
+                    save_graphs(pth, plane_names, graphs, split_graphs)
                     
-                    ###save example slices
-                    noise = torch.randn(1, nz, *[lz]*n_dims, device=device)
-                    img = netG(noise)
-                    if n_dims == 2:
-                        pass
-                        ####################################################
-                        ########## optionally new test plots here ##########
-                        ####################################################
-                    if n_dims == 3:
-                        util.test_plotter(img, 5, imtype, pth)
+                    # Save image of current slices (if the number of channels allows for it)
+                    if nc <= 4:
+                        noise = torch.randn(1, nz, *[lz]*n_dims, device=device)
+                        img = netG(noise)
+                        util.test_plotter(img, imtype, pth, n_dims=n_dims, slcs=5)
                     
-                    # plotting graphs
-                    if split_graphs:
-                        for disc_loss, Wass, gp, plane_name in zip(disc_loss_log, Wass_log, gp_log, plane_names):
-                            util.graph_plot(disc_loss, ['real', 'perp'],     pth, 'LossGraph'+'_'+plane_name)
-                            util.graph_plot([Wass],    ['Wass Distance'],    pth, 'WassGraph'+'_'+plane_name)
-                            util.graph_plot([gp],      ['Gradient Penalty'], pth, 'GpGraph'  +'_'+plane_name)
-                    else:
-                        util.graph_plot(sum(disc_loss_log,[]), util.permute(plane_names, ['real', 'perp']    ), pth, 'LossGraph')
-                        util.graph_plot(Wass_log,              util.permute(plane_names, ['Wass Distance']   ), pth, 'WassGraph')
-                        util.graph_plot(gp_log,                util.permute(plane_names, ['Gradient Penalty']), pth, 'GpGraph')
-                                        
+                    # Print the estimated time remaining
+                    util.calc_eta(len(dataloader[0]), time.time(), time_start, i, epoch, num_epochs)
+
                 netG.train() #turn on training mode
+
+def batch_train_discriminator(netD, optDs, data_real, data_fake, perm_dim, shape_disc, device):
+    pass
+
+def save_graphs(pth, plane_names, graphs, split_graphs=False):
+    
+        for graph_title, graph_data in zip(graphs.keys(), graphs.values()):
+        
+            # plot each plane in its own graph
+            if split_graphs:
+                
+                for plane_name, plane_data in zip(plane_names, graph_data["data"]):
+                    
+                    # graph_plot must be sent a list of lists
+                    if not type(plane_data[0]) in [list,tuple]:
+                        plane_data = [plane_data]
+                
+                    util.graph_plot(plane_data, graph_data["labels"], pth, graph_title+'_'+plane_name)
+                    
+            # plot all planes on the same graph
+            else:
+            
+                # elevate the plane sublists
+                # ex:
+                #     input =  [ 
+                #                 [ # x plane
+                #                    [var1],[var2]
+                #                 ],
+                #                 [ # y plane
+                #                    [var3],[var4]
+                #                 ],
+                #                 [ # z plane
+                #                    [var5],[var6]
+                #                 ]
+                #              ]
+                #     output = [[var1],[var2],[var3],[var4]]
+                if type(graph_data["data"][0][0]) in [list, tuple]:
+                    graph_data["data"] =  sum(graph_data["data"],[])
+                    
+                # permute the labels and planes
+                # ex: 
+                #     input : labels = ["real", "generated"], planes = ["x","y","z"]
+                #     output: labels = ["real_x", "real_y", "real_z", "generated_x", "generated_y", "generated_z"]
+                plane_labels = [plane_name+" Normal" for plane_name in plane_names]
+                labels = util.permute(plane_labels, graph_data["labels"])
+                    
+                util.graph_plot(graph_data["data"], labels, pth, graph_title)
+    
+def save_weights(pth, plane_names, netG, netDs):
+
+    #save Generator model weights
+    torch.save(netG.state_dict(), pth + '_Gen.pt')
+    
+    #save Discriminator model weights
+    for plane_name, netD in zip(plane_names, netDs):
+        torch.save(netD.state_dict(), pth + '_Disc_'+plane_name+'.pt')
