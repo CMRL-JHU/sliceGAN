@@ -267,7 +267,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 
 
             # Output training stats & show imgs
-            if( i % 5 == 0 or i == num_epochs - 1):
+            if( i % 25 == 0 or i == num_epochs - 1):
             
                 netG.eval() #turn off training mode
                 with torch.no_grad():
