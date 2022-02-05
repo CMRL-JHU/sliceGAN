@@ -187,7 +187,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
             data_fake = netG(noise).detach()
             print("fake data shape: ",data_fake.shape)
 
-            for netD, optD, data_real, c_perm_dim in zip(netDs, optDs, dataset, c_perm):
+            for dim, (netD, optD, data_real, c_perm_dim) in enumerate(zip(netDs, optDs, dataset, c_perm)):
                 
                 # Zero out the gradient
                 netD.zero_grad()
@@ -223,10 +223,10 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 ### Step the optimizer
                 optD.step()
             
-            #collect losses
-            disc_loss_log[dim][0] += [out_real.item()]; disc_loss_log[dim][1] += [out_fake.item()]
-            Wass_log[dim] += [out_real.item()-out_fake.item()]
-            gp_log[dim] += [gradient_penalty.item()]
+                #collect losses
+                disc_loss_log[dim][0] += [out_real.item()]; disc_loss_log[dim][1] += [out_fake.item()]
+                Wass_log[dim] += [out_real.item()-out_fake.item()]
+                gp_log[dim] += [gradient_penalty.item()]
             
             if wandb_support:
                 wandb.log({
@@ -267,7 +267,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 
 
             # Output training stats & show imgs
-            if( i % 25 == 0 or i == num_epochs - 1):
+            if( i % 5 == 0 or i == num_epochs - 1):
             
                 netG.eval() #turn off training mode
                 with torch.no_grad():
@@ -337,14 +337,14 @@ def save_graphs(pth, plane_names, graphs, split_graphs=False):
                 #                    [var5],[var6]
                 #                 ]
                 #              ]
-                #     output = [[var1],[var2],[var3],[var4]]
+                #     output = [[var1],[var2],[var3],[var4],[var5],[var6]]
                 if type(graph_data["data"][0][0]) in [list, tuple]:
                     graph_data["data"] =  sum(graph_data["data"],[])
                     
                 # permute the labels and planes
                 # ex: 
                 #     input : labels = ["real", "generated"], planes = ["x","y","z"]
-                #     output: labels = ["real_x", "real_y", "real_z", "generated_x", "generated_y", "generated_z"]
+                #     output: labels = ["x_real", "x_generated", "y_real", "y_generated", "z_real", "z_generated"]
                 plane_labels = [plane_name+" Normal" for plane_name in plane_names]
                 labels = util.permute(plane_labels, graph_data["labels"])
                     
