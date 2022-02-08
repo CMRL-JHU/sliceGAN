@@ -27,7 +27,8 @@ def mkdr(proj,proj_dir,Training):
     pth = proj_dir + '/' + proj
     if Training:
         try:
-            os.mkdir(pth)
+            # os.mkdir(pth)
+            os.makedirs(pth)
             return pth + '/' + proj
         except FileExistsError:
             print('Directory', pth, 'already exists. Enter new project name or hit enter to overwrite')
@@ -37,9 +38,9 @@ def mkdr(proj,proj_dir,Training):
             else:
                 pth = mkdr(new, proj_dir, Training)
                 return pth
-        except FileNotFoundError:
-            print('The specifified project directory ' + proj_dir + ' does not exist. Please change to a directory that does exist and again')
-            sys.exit()
+        # except FileNotFoundError:
+        #     print('The specifified project directory ' + proj_dir + ' does not exist. Please change to a directory that does exist and again')
+        #     sys.exit()
     else:
         return pth + '/' + proj
 

@@ -54,4 +54,4 @@ Input/*.txt
 Input/*.tif
 __pycache__/
 dream3d_support/pipeline_output/*
-slurm
+slurm*
