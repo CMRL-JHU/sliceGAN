@@ -17,8 +17,8 @@
 		"plane_suffixes"    : ["_YZ","_XZ","_XY"],
 		"plane_rotations"   : [1,1,0],
 		"tif_names"         : "AA7050",
-		"orientations_types": ["Quats"],
-		"orientations_names": ["Quats"],
+		"orientations_types": ["Quats","GBManhattanDistances"],
+		"orientations_names": ["FeatureAvgQuats","GBManhattanDistance"],
 		"plot_orientations" : false,
 		"periodic"          : false,
 		"lf"                : 6
