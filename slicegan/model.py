@@ -106,10 +106,11 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
         n_planes = 3
         plane_names = ['X','Y','Z']
         # permutation constants to convert 3D volume into a batch of 2D images
+        # data is of shape: [batch_size, nc, z, y, x]
         c_perm = [
-            [0, 2, 1, 3, 4], # last 3 indecies are now [nc,y,z] -> x normal 
-            [0, 3, 1, 2, 4], # last 3 indecies are now [nc,x,z] -> y normal
-            [0, 4, 1, 2, 3]  # last 3 indecies are now [nc,x,y] -> z normal
+            [0, 2, 1, 3, 4], # last 3 indecies are now [nc,y,x] -> z normal 
+            [0, 3, 1, 2, 4], # last 3 indecies are now [nc,z,x] -> y normal
+            [0, 4, 1, 2, 3]  # last 3 indecies are now [nc,z,y] -> x normal
         ]
         # The discriminator batch size is a portion of the generator batch size following: n*2^(n_planes-1)=batch_size ==> n
         D_batch_size = int(batch_size/(2**(n_planes-1)))
@@ -181,11 +182,9 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
             ## Generate a noise and fake image
             # Only one generation is needed because all 3 (orthogonal) discriminators will use it
             noise = torch.randn(D_batch_size, nz, *[lz]*n_dims, device=device)
-            print("noise shape: ",noise.shape)
             # Must be detached because otherwise it become associated with the first discriminator's graph
             # and cannot be called again for the 2nd and 3rd discriminator
             data_fake = netG(noise).detach()
-            print("fake data shape: ",data_fake.shape)
 
             for dim, (netD, optD, data_real, c_perm_dim) in enumerate(zip(netDs, optDs, dataset, c_perm)):
                 
@@ -195,26 +194,16 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 ### Forward pass
                 ## train on real images
                 data_real = data_real[0].to(device)
-                ############################################### this mean doesn't make sense. ############################################################
-                ###################### It just jams the data from all of the channels together and averages them #########################################
-                print("real data shape:",data_real.shape)
                 out_real = netD(data_real).mean()
-                print("real data discriminator output: ",out_real)
-                print("real data discriminator output shape: ",out_real.shape)
                 ## perform permutation + reshape to turn volume into batch of 2D images to pass to D
-                print("permutation constant: ",c_perm_dim)
                 data_fake_perm = data_fake.permute(*c_perm_dim).reshape(*shape_disc)
-                print("fake data permuted shape: ", data_fake_perm.shape)
                 ## train on fake images
-                out_fake = netD(data_fake_perm).mean()
-                print("fake data discriminator output: ",out_fake)
-                print("fake data discriminator output shape: ",out_fake.shape)
+                out_fake = netD(data_fake_perm)
+                out_fake = out_fake.mean()
                 ## loss criterion for wgan (as opposed to BCEWithLogitsLoss for gan)
                 gradient_penalty = util.calc_gradient_penalty(netD, data_real, data_fake_perm[:batch_size],
                                                                       batch_size, l,
                                                                       device, Lambda, nc)
-                print("gradient penalty: ", gradient_penalty)
-                print("gradient penalty shape: ", gradient_penalty.shape)
                 disc_cost = out_fake - out_real + gradient_penalty
                 
                 ### Backward pass
@@ -256,7 +245,8 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 for netD, c_perm_dim in zip(netDs, c_perm):
                     # permute and reshape to feed to disc
                     data_fake_perm = data_fake.permute(*c_perm_dim).reshape(*shape_gen)
-                    output = netD(data_fake_perm).mean()
+                    output = netD(data_fake_perm)
+                    output = output.mean()
                     errG -= output
                     
                 # backward pass

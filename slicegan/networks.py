@@ -92,8 +92,6 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
         def __str__(self):
             return(str(self.sequential))
 
-    
-
     class Discriminator(nn.Module):
         def __init__(self):
             super(Discriminator, self).__init__()
@@ -106,11 +104,10 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
                 self.modules.append(nn.Conv2d(df[lay], df[lay + 1], k, s, p, bias=False))
                 self.modules.append(nn.LeakyReLU(dns))
             
-            # Previous will output [nc x 1] tensor.
-            # Flatten to ready for Linear
+            # Previous will output [batch_size*nc x 1] tensor. (or D_batch_size*nc)
             # Linear to learn from each of the (nc) outputs
-            # self.modules.append(nn.Flatten(start_dim=1, end_dim=-1))
-            # self.modules.append(nn.Linear(img_channels, 1))
+            # self.modules.append(nn.Linear(1, self.batch_size))
+            # maybe do a few Conv1ds?
             
             # Combine the modules into a sequential network
             self.sequential = nn.Sequential(*self.modules)

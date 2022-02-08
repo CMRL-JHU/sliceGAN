@@ -282,16 +282,20 @@ def array_to_text(data, path_output, number_format='%.0f', delimiter="\t"):
         np.savetxt(file_output, data, fmt=number_format, delimiter=delimiter)
 
 def find_min_input_size_convolution(k,s,p,name,size_current):
-    for i in range(len(k)-1,0-1,-1):
-        size_next = (size_current-1)*s[i]+k[i]-2*p[i]
+    # for i in range(len(k)-1,0-1,-1):
+    for k,s,p in zip(k[::-1],s[::-1],p[::-1]):
+        # size_next = (size_current-1)*s[i]+k[i]-2*p[i]
+        size_next = (size_current-1)*s+k-2*p
         size_current=size_next
     if not(size_next%1 == 0):
         raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
 
 def find_min_input_size_deconvolution(k,s,p,name,size_current):
-    for i in range(len(k)-1,0-1,-1):
-        size_next = (size_current-k[i]+2*p[i])/s[i]+1
+    # for i in range(len(k)-1,0-1,-1):
+    for k,s,p in zip(k[::-1],s[::-1],p[::-1]):
+        # size_next = (size_current-k[i]+2*p[i])/s[i]+1
+        size_next = (size_current-k+2*p)/s+1
         size_current=size_next
     if not(size_next%1 == 0):
         raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})

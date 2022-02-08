@@ -1,5 +1,0 @@
-pip install wandb
-wandb login
-	f5fdc4946c89354c26e7578cabd6e4cc570d8a4e
-# creates file here:
-	C:\Users\nirahve\.netrc

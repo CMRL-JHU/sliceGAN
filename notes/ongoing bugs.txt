@@ -1,0 +1,4 @@
+need to resolve number of layers automatically based on image size
+	each layer decreases image size by power of 2 exept last layer which skips from 4 to 1, and must end at 1
+
+utils_json cannot handle pipeline annotations in dream3d pipelines. interprets "\n"

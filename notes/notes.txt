@@ -1,0 +1,12 @@
+why is there a difference?
+	shape_disc =           [l * D_batch_size, nc, l, l]
+    shape_gen  = [          l *   batch_size, nc, l, l]
+	alpha      = alpha.view(      batch_size, nc, l, l)
+		recently changed to:
+			alpha      = alpha.view(-1, nc, l, l)
+	
+why are we throwing away some of the data that goes to the gradient penalty?
+	gradient_penalty = util.calc_gradient_penalty(netD, data_real, data_fake[:batch_size],
+							  batch_size, l,
+							  device, Lambda, nc)
+
