@@ -239,15 +239,15 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 
                 # zero out the gradient
                 netG.zero_grad()
-                errG = 0
 
                 #forward pass
+                errG = 0
                 for netD, c_perm_dim in zip(netDs, c_perm):
                     # permute and reshape to feed to disc
                     data_fake_perm = data_fake.permute(*c_perm_dim).reshape(*shape_gen)
                     output = netD(data_fake_perm)
                     output = output.mean()
-                    errG -= output
+                    errG += output
                     
                 # backward pass
                 errG.backward()
