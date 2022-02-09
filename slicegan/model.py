@@ -142,6 +142,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
             ## Generate fake image batch with G
             # Only one generation is needed because all 3 (orthogonal) discriminators will use it
             fake_data = netG(noise).detach()
+            print("fake data shape: ", fake_data.shape)
             
             for dim, (netD, optD, data) in enumerate(zip(netDs, optDs, dataset)):
                 

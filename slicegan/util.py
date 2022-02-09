@@ -27,7 +27,8 @@ def mkdr(proj,proj_dir,Training):
     pth = proj_dir + '/' + proj
     if Training:
         try:
-            os.mkdir(pth)
+            # os.mkdir(pth)
+            os.makedirs(pth)
             return pth + '/' + proj
         except FileExistsError:
             print('Directory', pth, 'already exists. Enter new project name or hit enter to overwrite')
@@ -37,9 +38,9 @@ def mkdr(proj,proj_dir,Training):
             else:
                 pth = mkdr(new, proj_dir, Training)
                 return pth
-        except FileNotFoundError:
-            print('The specifified project directory ' + proj_dir + ' does not exist. Please change to a directory that does exist and again')
-            sys.exit()
+        # except FileNotFoundError:
+        #     print('The specifified project directory ' + proj_dir + ' does not exist. Please change to a directory that does exist and again')
+        #     sys.exit()
     else:
         return pth + '/' + proj
 
@@ -56,7 +57,7 @@ def weights_init(m):
         nn.init.normal_(m.weight.data, 1.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
 
-def calc_gradient_penalty(netD, real_data, fake_data, batch_size, l, device, gp_lambda,nc):
+def calc_gradient_penalty(netD, real_data, fake_data, batch_size, l, device, gp_lambda, nc):
     """
     calculate gradient penalty for a batch of real and fake data
     :param netD: Discriminator network
@@ -69,24 +70,11 @@ def calc_gradient_penalty(netD, real_data, fake_data, batch_size, l, device, gp_
     :param nc: channels
     :return: gradient penalty
     """
+    
     #sample and reshape random numbers
     alpha = torch.rand(batch_size, 1, device = device)
-    alpha = alpha.expand(-1, nc*l*l).contiguous()
-    alpha = alpha.view(batch_size, nc, l, l)
-    
-    # previously here:
-    # alpha = alpha.expand(-1, int(real_data.nelement() / batch_size)).contiguous()
-    # alpha = alpha.view(batch_size, nc, l, l)
-
-    ############## Exploring how to change padding/lz to allow changes in other hyperparameters ########################
-    # string = \
-        # "real data: "+str(real_data.size())+"\n"+ \
-        # "real_n_ele: "+str(real_data.nelement())+"\n"+ \
-        # "over batch: "+str(real_data.nelement()/batch_size)+"\n"+ \
-        # "alpha:     "+str(alpha.size())    +"\n"+ \
-        # "fake data: "+str(fake_data.size())+"\n"   
-    # print(string)
-    ####################################################################################################################
+    alpha = alpha.expand(-1, real_data.nelement()//batch_size).contiguous()
+    alpha = alpha.view(-1, nc, l, l)
     
     #create interpolate dataset
     interpolates = alpha * real_data.detach() + ((1 - alpha) * fake_data.detach())
@@ -158,7 +146,7 @@ def post_proc(img,imtype):
     if imtype == 'grayscale':
         return 255*img[0][0]
 
-def test_plotter(img,slcs,imtype,pth):
+def test_plotter(img,imtype,pth,n_dims=3,slcs=5):
     """
     creates a fig with 3*slc subplots showing example slices along the three axes
     :param img: raw input image
@@ -166,29 +154,41 @@ def test_plotter(img,slcs,imtype,pth):
     :param imtype: image type
     :param pth: where to save plot
     """
+
     img = post_proc(img,imtype)
-    fig, axs = plt.subplots(slcs, 3)
-    if imtype == 'colour':
-        for j in range(slcs):
-            axs[j, 0].imshow(img[j, :, :, :], vmin = 0, vmax = 255)
-            axs[j, 1].imshow(img[:, j, :, :],  vmin = 0, vmax = 255)
-            axs[j, 2].imshow(img[:, :, j, :],  vmin = 0, vmax = 255)
-    elif imtype == 'grayscale':
-        for j in range(slcs):
-            axs[j, 0].imshow(img[j, :, :], cmap = 'gray')
-            axs[j, 1].imshow(img[:, j, :], cmap = 'gray')
-            axs[j, 2].imshow(img[:, :, j], cmap = 'gray')
-    else:
-        for j in range(slcs):
-            axs[j, 0].imshow(img[j, :, :])
-            axs[j, 1].imshow(img[:, j, :])
-            axs[j, 2].imshow(img[:, :, j])
+    
+    if n_dims == 2:
+        if imtype == 'colour':
+            plt.imshow(img, vmin = 0, vmax = 255)
+        elif imtype == 'grayscale':
+            plt.imshow(img, cmap = 'gray')
+        else:
+            plt.imshow(img)
+    
+    if n_dims == 3:
+        fig, axs = plt.subplots(slcs, 3)
+        if imtype == 'colour':
+            for j in range(slcs):
+                axs[j, 0].imshow(img[j, :, :, :], vmin = 0, vmax = 255)
+                axs[j, 1].imshow(img[:, j, :, :], vmin = 0, vmax = 255)
+                axs[j, 2].imshow(img[:, :, j, :], vmin = 0, vmax = 255)
+        elif imtype == 'grayscale':
+            for j in range(slcs):
+                axs[j, 0].imshow(img[j, :, :], cmap = 'gray')
+                axs[j, 1].imshow(img[:, j, :], cmap = 'gray')
+                axs[j, 2].imshow(img[:, :, j], cmap = 'gray')
+        else:
+            for j in range(slcs):
+                axs[j, 0].imshow(img[j, :, :])
+                axs[j, 1].imshow(img[:, j, :])
+                axs[j, 2].imshow(img[:, :, j])
+    
     plt.savefig(pth + '_slices.png')
     plt.close()
 
 def permute(*strings): #used in plotting loss graphs if not splitting graphs
     strings = list(itertools.product(*strings))
-    strings = ['_'.join(string) for string in strings]
+    strings = [' '.join(string) for string in strings]
     return strings
 
 def graph_plot(data,labels,pth,name):
@@ -282,20 +282,30 @@ def array_to_text(data, path_output, number_format='%.0f', delimiter="\t"):
     with open(path_output, "ab") as file_output:
         np.savetxt(file_output, data, fmt=number_format, delimiter=delimiter)
 
-def find_min_input_size_convolution(k,s,p,name,size_current):
-    for i in range(len(k)-1,0-1,-1):
-        size_next = (size_current-1)*s[i]+k[i]-2*p[i]
+def find_min_input_size_convolution(k,s,p,name,size_current,silent=False):
+    # for i in range(len(k)-1,0-1,-1):
+    for k,s,p in zip(k[::-1],s[::-1],p[::-1]):
+        # size_next = (size_current-1)*s[i]+k[i]-2*p[i]
+        size_next = (size_current-1)*s+k-2*p
         size_current=size_next
     if not(size_next%1 == 0):
-        raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
+        if silent:
+            return False
+        else:
+            raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
 
-def find_min_input_size_deconvolution(k,s,p,name,size_current):
-    for i in range(len(k)-1,0-1,-1):
-        size_next = (size_current-k[i]+2*p[i])/s[i]+1
+def find_min_input_size_deconvolution(k,s,p,name,size_current,silent=False):
+    # for i in range(len(k)-1,0-1,-1):
+    for k,s,p in zip(k[::-1],s[::-1],p[::-1]):
+        # size_next = (size_current-k[i]+2*p[i])/s[i]+1
+        size_next = (size_current-k+2*p)/s+1
         size_current=size_next
     if not(size_next%1 == 0):
-        raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
+        if silent:
+    	    return False
+        else:
+            raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
     
 def find_padding(k, s, f):
@@ -303,14 +313,14 @@ def find_padding(k, s, f):
     for i in range(len(f)-1):
         #deconvolution
         if f[i+1] >= f[i]:
-            padding = ((f[i]-1)*s-f[i+1]+k)/2
+            padding = ((f[i]-1)*s[i]-f[i+1]+k[i])/2
             #if this catch block is reached, the deconvolution is being asked to do something it cannot
             #a padding of 1 is assumed because it seems to be a necessary assumption for impossible deconvolutions
             if padding < 0:
                 padding = 1
         #convolution
         else:
-            padding = ((f[i+1]-1)*s-f[i]+k)/2
+            padding = ((f[i+1]-1)*s[i]-f[i]+k[i])/2
             #if this catch block is reached, the convolution is being asked to do something it cannot
             #a padding of 0 is assumed because it seems to be a necessary assumption for impossible convolutions
             if padding < 0:
@@ -320,7 +330,28 @@ def find_padding(k, s, f):
             warn_out(warn_string)
         p += [int(padding)]
     return p
-        
+    
+def bump_padding(k,s,p,output_size,bounds):
+
+    # raise the padding values by:
+    # counting from right to left,
+    # treating each convolution as a digit,
+    # bounding each digit between [p[i],bounds[i]]
+    for p in count_between_bounds(p,bounds):
+        if find_min_input_size_deconvolution(k,s,p,"lz",output_size,silent=True):
+            return p
+    raise ValueError("Could not find value for padding that would result in natural output size")
+    
+def count_between_bounds(p,bounds):
+    ps = []
+    for i in range(p[0], max(p[0],bounds[0]+1)):
+        if len(p) > 1:
+            for j in count_between_bounds(p[1:],bounds[1:]):
+                ps += [[i]+j]
+        else:
+            ps += [[i]]
+    return ps
+
 def warn_out(warning_string):
     if warning_string:
         print(warning_string)
