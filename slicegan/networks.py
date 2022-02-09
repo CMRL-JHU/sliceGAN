@@ -1,6 +1,6 @@
 from slicegan import util
 import torch.nn as nn
-from numpy import log
+import numpy as np
 import json
 
 def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims):
@@ -21,9 +21,6 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
     ks   = data["ks"  ]
     # stride (same for each layer)
     st   = data["st"  ]
-    # padding (unique for each layer)
-    dp   = data["dp"  ]
-    gp   = data["gp"  ]
     # leaky ReLU negative slopes
     dns  = data["dns" ]
     gns  = data["gns" ]
@@ -34,26 +31,30 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
         warn_string += "No kernel overlap, image quality will suffer"+"\n"
     if not(ks%st == 0):
         warn_string += "Kernel-stride mismatch, image quality will suffer"+"\n"
-    if gp < [ks-st]:
-        warn_string += "Padding too small, image quality at edges will suffer"+"\n"
-    if gp > [ks]:
-        warn_string += "Padding too large, image quality at edges will suffer"+"\n"
     util.warn_out(warn_string)
     
-    #set kernel sizes and strides for each layer
+    # set kernel sizes and strides for each layer
     dk = [ks ]*lays 
     gk = [ks ]*lays
     ds = [st ]*lays 
     gs = [st ]*lays
     
     # construct number of i/o channels for each filter
-    n_power = int(log(img_size)/log(2)) # 2^n = img_size ==> n
+    n_power = int(np.log(img_size)/np.log(2)) # 2^n = img_size ==> n
     nc = [2**n for n in range(n_power, n_power+lays-1)]
-    df, gf = [img_channels, *nc, 1], [z_channels, *nc[::-1], img_channels]
+    df, gf = [img_channels, *nc[::-1], 1], [z_channels, *nc, img_channels]
     
-    #find discriminator padding
-    dp = util.find_padding(ks, st, df)
-    
+    ### find padding
+    ## discriminator
+    dp = util.find_padding(dk, ds, df)
+    ## generator
+    # find padding required by deconvolution
+    gp = util.find_padding(gk, gs, gf)
+    # find padding required by information density constraint
+    gp = [np.ceil(k/s).astype(type(p)) if p<k/s else p for k,s,p in zip(gk,gs,gp)]
+    # find padding required to produce a natural latent space vector
+    gp = util.bump_padding(gk,gs,gp,img_size,[ks-1]*lays)
+
     #find minimum image size
     img_size_min = util.find_min_input_size_convolution(dk,ds,dp,"image_size",1)
     if img_size < img_size_min:
@@ -92,6 +93,8 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
         def __str__(self):
             return(str(self.sequential))
 
+    
+
     class Discriminator(nn.Module):
         def __init__(self):
             super(Discriminator, self).__init__()
@@ -100,16 +103,13 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
             self.stride      = ds
             self.padding     = dp
             for lay, (k, s, p) in enumerate(zip(self.kernel_size,self.stride,self.padding)):
-                # Convolve and rectify the input image
                 self.modules.append(nn.Conv2d(df[lay], df[lay + 1], k, s, p, bias=False))
-                self.modules.append(nn.LeakyReLU(dns))
-            
-            # Previous will output [batch_size*nc x 1] tensor. (or D_batch_size*nc)
-            # Linear to learn from each of the (nc) outputs
-            # self.modules.append(nn.Linear(1, self.batch_size))
-            # maybe do a few Conv1ds?
-            
-            # Combine the modules into a sequential network
+                # self.modules.append(nn.Conv2d   (df[lay], df[lay + 1], 1, 1, 0, bias=False))
+                # self.modules.append(nn.MaxPool2d(2, 2, 0))
+                # self.modules.append(nn.ReLU())
+                self.modules.append(nn.LeakyReLU(dns)) ########## Testing
+            #keep the last Conv, ditch the rest
+            #self.modules = self.modules[:-1]
             self.sequential = nn.Sequential(*self.modules)
         def forward(self, x):
             x = self.sequential(x)

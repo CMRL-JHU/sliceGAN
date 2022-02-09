@@ -282,24 +282,30 @@ def array_to_text(data, path_output, number_format='%.0f', delimiter="\t"):
     with open(path_output, "ab") as file_output:
         np.savetxt(file_output, data, fmt=number_format, delimiter=delimiter)
 
-def find_min_input_size_convolution(k,s,p,name,size_current):
+def find_min_input_size_convolution(k,s,p,name,size_current,silent=False):
     # for i in range(len(k)-1,0-1,-1):
     for k,s,p in zip(k[::-1],s[::-1],p[::-1]):
         # size_next = (size_current-1)*s[i]+k[i]-2*p[i]
         size_next = (size_current-1)*s+k-2*p
         size_current=size_next
     if not(size_next%1 == 0):
-        raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
+        if silent:
+            return False
+        else:
+            raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
 
-def find_min_input_size_deconvolution(k,s,p,name,size_current):
+def find_min_input_size_deconvolution(k,s,p,name,size_current,silent=False):
     # for i in range(len(k)-1,0-1,-1):
     for k,s,p in zip(k[::-1],s[::-1],p[::-1]):
         # size_next = (size_current-k[i]+2*p[i])/s[i]+1
         size_next = (size_current-k+2*p)/s+1
         size_current=size_next
     if not(size_next%1 == 0):
-        raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
+        if silent:
+    	    return False
+        else:
+            raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
     
 def find_padding(k, s, f):
@@ -307,14 +313,14 @@ def find_padding(k, s, f):
     for i in range(len(f)-1):
         #deconvolution
         if f[i+1] >= f[i]:
-            padding = ((f[i]-1)*s-f[i+1]+k)/2
+            padding = ((f[i]-1)*s[i]-f[i+1]+k[i])/2
             #if this catch block is reached, the deconvolution is being asked to do something it cannot
             #a padding of 1 is assumed because it seems to be a necessary assumption for impossible deconvolutions
             if padding < 0:
                 padding = 1
         #convolution
         else:
-            padding = ((f[i+1]-1)*s-f[i]+k)/2
+            padding = ((f[i+1]-1)*s[i]-f[i]+k[i])/2
             #if this catch block is reached, the convolution is being asked to do something it cannot
             #a padding of 0 is assumed because it seems to be a necessary assumption for impossible convolutions
             if padding < 0:
@@ -324,7 +330,28 @@ def find_padding(k, s, f):
             warn_out(warn_string)
         p += [int(padding)]
     return p
-        
+    
+def bump_padding(k,s,p,output_size,bounds):
+
+    # raise the padding values by:
+    # counting from right to left,
+    # treating each convolution as a digit,
+    # bounding each digit between [p[i],bounds[i]]
+    for p in count_between_bounds(p,bounds):
+        if find_min_input_size_deconvolution(k,s,p,"lz",output_size,silent=True):
+            return p
+    raise ValueError("Could not find value for padding that would result in natural output size")
+    
+def count_between_bounds(p,bounds):
+    ps = []
+    for i in range(p[0], max(p[0],bounds[0]+1)):
+        if len(p) > 1:
+            for j in count_between_bounds(p[1:],bounds[1:]):
+                ps += [[i]+j]
+        else:
+            ps += [[i]]
+    return ps
+
 def warn_out(warning_string):
     if warning_string:
         print(warning_string)
