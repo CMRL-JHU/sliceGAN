@@ -101,7 +101,7 @@ print(f"Using {data_type} as transfer type")
 print(f"DREAM.3D support is {Dream3d_Support}")
 
 # Create project folder
-# Project_path = util.mkdr(Project_name, Project_dir, Training)
+Project_path = util.mkdr(Project_name, Project_dir, Training)
 
 if Dream3d_Support:
     import os
