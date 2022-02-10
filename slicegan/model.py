@@ -8,7 +8,6 @@ import time
 import matplotlib
 matplotlib.use('Agg')
 import json
-import itertools
 
 #wandb.login() must be performed on the machine to store login information under .netrc
 import wandb, netrc
@@ -133,6 +132,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
             torch.utils.data.DataLoader(
                 datasets[i],
                 batch_size=batch_size,
+                shuffle=True,
                 num_workers=workers
             )
         )
@@ -194,7 +194,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                 ### Forward pass
                 ## train on real images
                 data_real = data_real[0].to(device)
-                out_real = netD(data_real).mean()
+                out_real = netD(data_real).view(-1).mean()
                 ## perform permutation + reshape to turn volume into batch of 2D images to pass to D
                 data_fake_perm = data_fake.permute(*c_perm_dim).reshape(*shape_disc)
                 ## train on fake images
@@ -232,7 +232,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
             #training the critic more more can only benefit the balance of the model. 
             #this is why it looks backwards in comparison to a normal gan.
             if i % int(critic_iters) == 0:
-                
+
                 # generate noise and fake image
                 noise = torch.randn(batch_size, nz, *[lz]*n_dims, device=device)
                 data_fake = netG(noise)
@@ -247,7 +247,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                     data_fake_perm = data_fake.permute(*c_perm_dim).reshape(*shape_gen)
                     output = netD(data_fake_perm)
                     output = output.mean()
-                    errG += output
+                    errG -= output
                     
                 # backward pass
                 errG.backward()
@@ -292,9 +292,6 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                     util.calc_eta(len(dataloader[0]), time.time(), time_start, i, epoch, num_epochs)
 
                 netG.train() #turn on training mode
-
-def batch_train_discriminator(netD, optDs, data_real, data_fake, perm_dim, shape_disc, device):
-    pass
 
 def save_graphs(pth, plane_names, graphs, split_graphs=False):
     
