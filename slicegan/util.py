@@ -308,29 +308,6 @@ def find_min_input_size_deconvolution(k,s,p,name,size_current,silent=False):
             raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
     
-# def find_padding(k, s, f):
-    # p = []
-    # for i in range(len(f)-1):
-        # #deconvolution
-        # if f[i+1] >= f[i]:
-            # padding = ((f[i]-1)*s[i]-f[i+1]+k[i])/2
-            # #if this catch block is reached, the deconvolution is being asked to do something it cannot
-            # #a padding of 1 is assumed because it seems to be a necessary assumption for impossible deconvolutions
-            # if padding < 0:
-                # padding = 1
-        # #convolution
-        # else:
-            # padding = ((f[i+1]-1)*s[i]-f[i]+k[i])/2
-            # #if this catch block is reached, the convolution is being asked to do something it cannot
-            # #a padding of 0 is assumed because it seems to be a necessary assumption for impossible convolutions
-            # if padding < 0:
-                # padding = 0
-        # if not(padding%1 == 0):
-            # warn_string = "Invalid padding for layer %(i)i: %(padding)s " %{"i":i+1,"padding":padding}
-            # warn_out(warn_string)
-        # p += [int(padding)]
-    # return p
-    
 def find_padding_deconvolution(k,s,output_size,bounds_min,bounds_max):
     # raise the padding values by:
     # counting from right to left,

@@ -34,14 +34,19 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
     util.warn_out(warn_string)
     
     # set kernel sizes and strides for each layer
-    dk = [ks ]*lays 
-    gk = [ks ]*lays
-    ds = [st ]*lays 
-    gs = [st ]*lays
+    dk = gk = [ks ]*lays
+    ds = gs = [st ]*lays
     
-    # construct number of i/o channels for each filter
-    n_power = int(np.log(img_size)/np.log(2)) # 2^n = img_size ==> n
+    ### find filters
+    ## construct number of i/o channels for each filter
+    ##     i/o channels start at one power of 2 higher than img_size
+    ##     and continue for lays-1 powers of 2
+    # find nearest power of 2 for img_size (2^n = img_size ==> n)
+    n_power = int(np.log(img_size)/np.log(2))
+    # find lays-1 powers of 2 starting from n_power
     nc = [2**n for n in range(n_power, n_power+lays-1)]
+    # discriminator channels should decrease in size,
+    # generator channels should increase
     df, gf = [img_channels, *nc[::-1], 1], [z_channels, *nc, img_channels]
     
     ### find padding
@@ -53,11 +58,6 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
     # find padding required to produce a natural latent space vector
     gp = util.find_padding_deconvolution(gk,gs,img_size,gp,[ks-1]*lays)
 
-    #find minimum image size
-    img_size_min = util.find_min_input_size_convolution(dk,ds,dp,"image_size",1)
-    if img_size < img_size_min:
-        raise ValueError("Image size (%(img_size)s) is less than minimum image size (%(img_size_min)s). Cannot convolve." %{"img_size":img_size, "img_size_min":img_size_min})
-    
     # Make nets
     class Generator(nn.Module):
         def __init__(self):
