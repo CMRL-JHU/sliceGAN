@@ -316,7 +316,7 @@ def find_padding_deconvolution(k,s,output_size,bounds_min,bounds_max):
     for p in find_permutations_between_bounds(bounds_min,bounds_max):
         if find_min_input_size_deconvolution(k,s,p,"lz",output_size,silent=True):
             return p
-    raise ValueError("Could not find value for padding that would result in natural output size")
+    raise ValueError("Could not find value for padding that would result in natural input size")
     
 def find_padding_convolution(k,s,input_size,output_size,bounds_min,bounds_max):
     # raise the padding values by:
