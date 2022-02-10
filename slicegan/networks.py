@@ -46,14 +46,12 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
     
     ### find padding
     ## discriminator
-    dp = util.find_padding(dk, ds, df)
+    dp = util.find_padding_convolution(dk,ds,img_size,1,[0]*lays,[ks-1]*lays)
     ## generator
-    # find padding required by deconvolution
-    gp = util.find_padding(gk, gs, gf)
-    # find padding required by information density constraint
-    gp = [np.ceil(k/s).astype(type(p)) if p<k/s else p for k,s,p in zip(gk,gs,gp)]
+    # find minimum padding required by information density constraint
+    gp = [np.ceil(k/s).astype(type(p)) if p<k/s else p for k,s,p in zip(gk,gs,[0]*lays)]
     # find padding required to produce a natural latent space vector
-    gp = util.bump_padding(gk,gs,gp,img_size,[ks-1]*lays)
+    gp = util.find_padding_deconvolution(gk,gs,img_size,gp,[ks-1]*lays)
 
     #find minimum image size
     img_size_min = util.find_min_input_size_convolution(dk,ds,dp,"image_size",1)
