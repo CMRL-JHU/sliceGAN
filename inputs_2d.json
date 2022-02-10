@@ -18,7 +18,7 @@
 		"plane_rotations"   : [0],
 		"tif_names"         : "AA7050",
 		"orientations_types": ["Quats"],
-		"orientations_names": ["Quats"],
+		"orientations_names": ["FeatureAvgQuats"],
 		"plot_orientations" : false,
 		"periodic"          : false,
 		"lf"                : 6
