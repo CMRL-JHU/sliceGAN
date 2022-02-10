@@ -197,10 +197,11 @@ def push_attribute_arrays_expected(path_json, path_VolumeDataContainer, data, ge
     # pull dream3d pipeline
     data_json = utils_json.pull_input(path_json)
     
-    # find the desired attribute matrix
-    for i, data_container in enumerate(data_json["00"]["InputFileDataContainerArrayProxy"]["Data Containers"]):
+    # find the desired attribute matrix  
+    filter_number = find_filter_number(data_json, "DataContainerReader")
+    for i, data_container in enumerate(data_json[filter_number]["InputFileDataContainerArrayProxy"]["Data Containers"]):
         if data_container["Name"] == path_VolumeDataContainer.rsplit("/",1)[-1]:
-            for j, attribute_matrix in enumerate(data_json["00"]["InputFileDataContainerArrayProxy"]["Data Containers"][i]["Attribute Matricies"]):
+            for j, attribute_matrix in enumerate(data_json[filter_number]["InputFileDataContainerArrayProxy"]["Data Containers"][i]["Attribute Matricies"]):
                 if attribute_matrix["Name"] == "CellData":
                 
                     # construct desired replacement data array
@@ -215,11 +216,16 @@ def push_attribute_arrays_expected(path_json, path_VolumeDataContainer, data, ge
                             "Tuple Dimensions": geometry["dims"],
                             "Version": 2
                         }]
-                    data_json["00"]["InputFileDataContainerArrayProxy"]["Data Containers"][i]["Attribute Matricies"][j]["Data Arrays"] = data_arrays
+                    data_json[filter_number]["InputFileDataContainerArrayProxy"]["Data Containers"][i]["Attribute Matricies"][j]["Data Arrays"] = data_arrays
                     
                     # push inputs to dream3d pipeline
                     utils_json.push_input(path_json, data_json, padding=4*" ")
                     return
+                    
+def find_filter_number(data_json, name_filter):
+    for id_filter in data_json:
+        if data_json[id_filter]["Filter_Name"] == name_filter:
+            return id_filter
    
 def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suffixes, dream3d_path, orientations_types, input_type):
 
