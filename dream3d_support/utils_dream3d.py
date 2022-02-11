@@ -10,6 +10,7 @@ def get_datatype(datatype):
     if datatype == "uint8":
         return np.uint8
         
+# Find all filter ids in a DREAM.3D *.JSON file with name
 def get_filter_ids(data_json, name_filter):
 
     filter_ids = []
@@ -25,27 +26,45 @@ def get_filter_ids(data_json, name_filter):
         
 #slicegan has no knowlegde of crystallography data, resolution, or naming schema, so it is imported from the .dream3d file
 def import_data_ebsd_reference(path_dream3d_input, VolumeDataContainer_Path, orientations_type):
+    
     with h5py.File(path_dream3d_input, 'r') as file_dream3d_input:
+    
+        # Search through *.DREAM3D file to find all data containers
         DataContainers = []
         for DataContainer in file_dream3d_input["DataContainers"]:
             DataContainers.append(file_dream3d_input["DataContainers"+"/"+DataContainer])
+            
+        # Search through all data containers to find reference information
         name_planes       = []
         size_voxels       = []
         CellEnsembleData = []
         for DataContainer in DataContainers:
-            #because there are 3 images in the source file, each data container is a plane represented by two basis vectors trailing the path name (X,Y,Z)
+            # Because there are 3 images in the source file,
+            # each data container contains a plane represented by two basis vectors trailing the path name:
+            #     ('yz','xz', or 'xy')
             name_planes      += [filter_string(DataContainer.name, [VolumeDataContainer_Path], "xyzXYZ").lower()]
-            #each image is 2D, so the spacing in Z dimension is inconsequential
-            size_voxels      += DataContainer["_SIMPL_GEOMETRY/SPACING"][:-1].tolist()
+            # Each image is 2D, so the spacing in Z dimension is inconsequential
+            size_voxels      += [DataContainer["_SIMPL_GEOMETRY/SPACING"][:-1].tolist()]
             CellEnsembleData.append(DataContainer["CellEnsembleData"])
         path_crystallography = CellEnsembleData[0].name
         
+        # If the input contains 3 planes, we are trying to reconstruct a 3D microstructure.
+        # The side resolutions should be the same in order to reconstruct properly.
+        # This function allows us to determine if the side resolutions are compatible
+        # And gives us the common resolutions [x,y,z] if they exist
         if len(name_planes) == 3:
             size_voxels = find_common_global_value(name_planes, size_voxels)
+        # If the input contains 1 plane, we're trying to reconstruct a 2D microstructure.
+        # No compatibility check is required, and the resolution is given as [x,y,1]
+        else:
+            size_voxels = size_voxels+[1]
         
+        # A microstructure with no common resolutions or with differing crystallographic data
+        # will not be able to be merged together at the end of the training run.
+        # To avoid wasting training time, these merge errors are caught before the run begins
         check_errors(name_planes, size_voxels, CellEnsembleData, orientations_type)
         
-    return name_planes, size_voxels+[1], path_crystallography
+    return name_planes, size_voxels, path_crystallography
     
 #filter a string with blacklist and whitelist
 def filter_string(string, blacklist=None, whitelist=None):
@@ -70,12 +89,14 @@ def check_errors(name_planes, size_voxels, CellEnsembleData, orientations_type):
         
 #check if there is a common voxel size for each side. if there is not, then there will be no way to reconcile the dream3d data with the slicegan data at the end.
 def check_error_resolution(size_voxels):
-    if isinstance(size_voxels, str): raise ValueError(size_voxels)
+    if isinstance(size_voxels, str):
+        raise ValueError(size_voxels)
     
-#check if the crystallography matches. if there is not, then there will be no way to reconcile the dream3d data with the slicegan data at the end.
+#check if the crystallography matches exactly. if it does not, then there will be no way to reconcile the dream3d data with the slicegan data at the end.
 def check_error_crystallography(CellEnsembleData, orientations_type):
     if is_crystallographic(orientations_type):
-            if not groups_are_equal(CellEnsembleData): raise RuntimeError("Crystallography data does not match between all 3 planes. No way to link crystallography")
+        if not groups_are_equal(CellEnsembleData):
+            raise RuntimeError("Crystallography data does not match between all 3 planes. No way to link crystallography")
             
 #returns true if the value is a crystallographic data type
 def is_crystallographic(orientations_types):
