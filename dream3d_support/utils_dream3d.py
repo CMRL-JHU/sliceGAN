@@ -36,7 +36,7 @@ def import_data_ebsd_reference(path_dream3d_input, VolumeDataContainer_Path, ori
             #because there are 3 images in the source file, each data container is a plane represented by two basis vectors trailing the path name (X,Y,Z)
             name_planes      += [filter_string(DataContainer.name, [VolumeDataContainer_Path], "xyzXYZ").lower()]
             #each image is 2D, so the spacing in Z dimension is inconsequential
-            size_voxels      += [DataContainer["_SIMPL_GEOMETRY/SPACING"][:-1].tolist()]
+            size_voxels      += DataContainer["_SIMPL_GEOMETRY/SPACING"][:-1].tolist()
             CellEnsembleData.append(DataContainer["CellEnsembleData"])
         path_crystallography = CellEnsembleData[0].name
         
@@ -125,27 +125,115 @@ def rotate_all(DataContainer,n):
             elif DataContainer["CellData/"+item].attrs["ObjectType"] == format_string("DataArray<int32_t>"):
                 DataContainer["CellData/"+item][:] = np.int32(replace_empty_z_container(rotate_90_degrees(remove_empty_z_container(DataContainer["CellData/"+item][:]), n=n)))
 
-#insert dream3d formatted attribute array with specified data into specified hdf5 group
-def insert_attribute_array(attribute_array_data, group, name, dtype="DataArray<float>"):
-    if len(list(attribute_array_data.shape)) > 2:
-        if not len(attribute_array_data.shape) > 3:
-            attribute_array_data = attribute_array_data.reshape(np.append(attribute_array_data.shape,1).astype(tuple))
-        dims       = list(np.flip(attribute_array_data.shape[:-1]))
-        components = [attribute_array_data.shape[-1]]
-        tuple_axis_dimensions = "x="+str(dims[0])+",y="+str(dims[1])+",z="+str(dims[2])
+# Create an empty DREAM.3D file with just the bare minimum to be recognized by DREAM.3D
+def create_file_dream3d(path_output):
+
+    with h5py.File(path_output, 'w') as file_output:
+    
+        # create hdf file and required data structure
+        file_output.attrs["DREAM3D Version"] = format_string("1.2.815.6bed39e95A")
+        file_output.attrs["FileVersion"]     = format_string("7.0")
+        file_output.create_group("DataContainerBundles")
+        Pipeline = file_output.create_group("Pipeline")
+        Pipeline.attrs["Current Pipeline"] = format_string("Pipeline")
+        Pipeline.attrs["Pipeline Version"] = np.int32([2])
+        s = format_string(" \
+        {\n \
+            \"PipelineBuilder\":{\n \
+                \"Name\":\"Pipeline\",\n \
+                \"Number_Filters\":0,\n \
+                \"Version\":6\n \
+        } \
+        ")
+        Pipeline.create_dataset("Pipeline", data=s)
+
+# Geometry should be a dictionary formatted as:
+# {
+#    "dims"       : [x,y,z]
+#    "origin"     : [x,y,z] # normally [0,0,0]
+#    "size_voxels": [x,y,z]
+# }
+def insert_geometry(
+    path_output,
+    geometry,
+    path_Geometry="/DataContainers/ImageDataContainer/_SIMPL_GEOMETRY"
+    ):
+
+    with h5py.File(path_output, 'a') as file_output:
+
+        # export geometry data necessary for preserving dimensionality
+        Geometry = file_output.create_group(path_Geometry)
+        Geometry.attrs["GeometryName"]          = format_string("ImageGeometry")
+        Geometry.attrs["GeometryType"]          = np.uint32([0])
+        Geometry.attrs["GeometryTypeName"]      = format_string("ImageGeometry")
+        Geometry.attrs["SpatialDimensionality"] = np.uint32([len(geometry["dims"])])
+        Geometry.attrs["UnitDimensionality"]    = np.uint32([len(geometry["dims"])])
+        Geometry.create_dataset("DIMENSIONS", data=geometry["dims"])
+        Geometry.create_dataset("ORIGIN"    , data=geometry["origin"])
+        Geometry.create_dataset("SPACING"   , data=geometry["size_voxels"])
+        
+# Crystallography information comes from EBSD files of many types
+# While you could create your own EBSD data from an EBSD file (.ang, .ctf, etc...)
+# DREAM.3D handles this pretty well already, so it's likely best to import it with DREAM.3D
+# This function can be used to copy already formatted crystallography information from a reference *.DREAM3D file
+def copy_crystallography(
+    path_dream3d_output,
+    path_dream3d_input,
+    path_CellEnsembleData_output="/DataContainers/ImageDataContainer/CellEnsembleData",
+    path_CellEnsembleData_input="/DataContainers/ImageDataContainer/CellEnsembleData"
+    ):
+    
+    with h5py.File(path_dream3d_input, 'r') as file_dream3d_input, h5py.File(path_dream3d_output, 'a') as file_dream3d_output:
+    
+        # export cell ensemble data necessary for crystallographic analysis
+        file_dream3d_output.copy(file_dream3d_input[path_CellEnsembleData_input], path_CellEnsembleData_output)
+
+# Insert dream3d formatted attribute array with specified data into specified hdf5 group
+# Should should be a numpy array of shape: [z,y,x,components] or [x,components]
+# A missing component dimension can be inferred, but it's best to be explicit
+def insert_attribute_array(
+    path_output,
+    name,
+    data,
+    dtype="DataArray<float>",
+    path_CellData="/DataContainers/ImageDataContainer/CellData",
+    path_Geometry="/DataContainers/ImageDataContainer/_SIMPL_GEOMETRY"
+    ):
+
+    ## Find dimension and component information
+    # Assume the data is 2 or 3 dimensional
+    if len(data.shape) > 2:
+        # Assume the data is missing the component dimension
+        if not len(data.shape) > 3:
+            data = data.reshape(np.append(data.shape,1).astype(tuple))
+    # Assume the data is 1 dimensional
     else:
-        dims = attribute_array_data.shape[0]
-        if len(list(attribute_array_data.shape)) > 1:
-            components = attribute_array_data.shape[1]
-        else:
-            components = 1
-        tuple_axis_dimensions = "x="+str(dims)
-    attribute_array_dataset = group.create_dataset(name, data=attribute_array_data)
-    attribute_array_dataset.attrs["ComponentDimensions"]   = np.uint64(components)
-    attribute_array_dataset.attrs["DataArrayVersion"]      = np.int32([2])
-    attribute_array_dataset.attrs["ObjectType"]            = format_string(dtype)
-    attribute_array_dataset.attrs["Tuple Axis Dimensions"] = format_string(tuple_axis_dimensions)
-    attribute_array_dataset.attrs["TupleDimensions"]       = np.uint64(dims)
+        # Assume the data is missing the component dimension
+        if not len(data.shape) > 1:
+            data = data.reshape(np.append(data.shape,1).astype(tuple))
+    dims                  = list(data.shape[:-1][::-1])
+    components            = [data.shape[-1]]
+    tuple_axis_dimensions = ','.join(['='.join([name,str(value)]) for name,value in zip(['x','y','z'],dims)])
+        
+    with h5py.File(path_output, 'a') as file_output:
+        
+        # create the CellData group and its required attributes if it does not exist
+        group = file_output.require_group(path_CellData)
+        attributes = {
+            "AttributeMatrixType": np.uint32([len(file_output[path_Geometry+"/"+"DIMENSIONS"][...])]),
+            "TupleDimensions"    : np.uint64(file_output[path_Geometry+"/"+"DIMENSIONS"][...])
+        }
+        for key, val in zip(attributes.keys(), attributes.values()):
+            if not key in [i for i in file_output[path_CellData].attrs.keys()]:
+                group.attrs[key] = val
+        
+        # export attribute array
+        dataset = group.create_dataset(name, data=data)
+        dataset.attrs["ComponentDimensions"]   = np.uint64(components)
+        dataset.attrs["DataArrayVersion"]      = np.int32([2])
+        dataset.attrs["ObjectType"]            = format_string(dtype)
+        dataset.attrs["Tuple Axis Dimensions"] = format_string(tuple_axis_dimensions)
+        dataset.attrs["TupleDimensions"]       = np.uint64(dims)
 
 #call dream3d file
 def call_dream3d(dream3d_path, json_path):

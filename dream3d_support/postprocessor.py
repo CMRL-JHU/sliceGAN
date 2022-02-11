@@ -145,52 +145,20 @@ def export_data_hdf5(data, geometry, path_output, path_dream3d_input, path_Volum
     path_CellData         = path_VolumeDataContainer+"/"+"CellData"
     path_CellEnsembleData = path_VolumeDataContainer+"/"+"CellEnsembleData"
     path_Geometry         = path_VolumeDataContainer+"/"+"_SIMPL_GEOMETRY"
-
-    with h5py.File(path_output, 'w') as file_output:
     
-        # create hdf file and required data structure
-        file_output.attrs["DREAM3D Version"] = utils_dream3d.format_string("1.2.815.6bed39e95A")
-        file_output.attrs["FileVersion"]     = utils_dream3d.format_string("7.0")
-        CellData = file_output.create_group(path_CellData)
-        CellData.attrs["AttributeMatrixType"] = np.uint32([len(geometry["dims"])])
-        CellData.attrs["TupleDimensions"]     = np.uint64(geometry["dims"])
-        file_output.create_group("DataContainerBundles")
-        Pipeline = file_output.create_group("Pipeline")
-        Pipeline.attrs["Current Pipeline"] = utils_dream3d.format_string("Pipeline")
-        Pipeline.attrs["Pipeline Version"] = np.int32([2])
-        s = utils_dream3d.format_string(" \
-        {\n \
-            \"PipelineBuilder\":{\n \
-                \"Name\":\"Pipeline\",\n \
-                \"Number_Filters\":0,\n \
-                \"Version\":6\n \
-        } \
-        ")
-        Pipeline.create_dataset("Pipeline", data=s)
-            
-        # export cell ensemble data necessary for crystallographic analysis
-        with h5py.File(path_dream3d_input, 'r') as file_dream3d_input:
-            file_output.copy(file_dream3d_input[path_crystallography], path_CellEnsembleData)
-
-        # export geometry data necessary for preserving dimensionality
-        Geometry = file_output.create_group(path_Geometry)
-        Geometry.attrs["GeometryName"]          = utils_dream3d.format_string("ImageGeometry")
-        Geometry.attrs["GeometryType"]          = np.uint32([0])
-        Geometry.attrs["GeometryTypeName"]      = utils_dream3d.format_string("ImageGeometry")
-        Geometry.attrs["SpatialDimensionality"] = np.uint32([len(geometry["dims"])])
-        Geometry.attrs["UnitDimensionality"]    = np.uint32([len(geometry["dims"])])
-        Geometry.create_dataset("DIMENSIONS", data=geometry["dims"])
-        Geometry.create_dataset("ORIGIN"    , data=geometry["origin"])
-        Geometry.create_dataset("SPACING"   , data=geometry["size_voxels"])
-        
-        #export data to hdf
-        for name, properties in zip(data.keys(), data.values()):
-            utils_dream3d.insert_attribute_array(
-                properties["data"],
-                CellData,
-                name,
-                properties["attribute_array_type"]
-                )
+    # create the dream3d file
+    utils_dream3d.create_file_dream3d (path_output)
+    utils_dream3d.insert_geometry     (path_output, geometry, path_Geometry)
+    utils_dream3d.copy_crystallography(path_output, path_dream3d_input, path_CellEnsembleData, path_crystallography)
+    for name, properties in zip(data.keys(), data.values()):
+        utils_dream3d.insert_attribute_array(
+            path_output   = path_output,
+            name          = name,
+            data          = properties["data"],
+            dtype         = properties["attribute_array_type"],
+            path_CellData = path_CellData,
+            path_Geometry = path_Geometry 
+            )
 
 def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suffixes, dream3d_path, orientations_types, input_type):
 
