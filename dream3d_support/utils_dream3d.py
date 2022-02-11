@@ -9,6 +9,14 @@ def get_datatype(datatype):
         return np.int32
     if datatype == "uint8":
         return np.uint8
+        
+def get_filter_ids(data_json, name_filter):
+    filter_ids = []
+    for filter_id in data_json.keys():
+        if "Filter_Name" in data_json[filter_id].keys() and data_json[filter_id]["Filter_Name"] == name_filter:
+            filter_ids += [filter_id]
+    return filter_ids
+        
 #slicegan has no knowlegde of crystallography data, resolution, or naming schema, so it is imported from the .dream3d file
 def import_data_ebsd_reference(path_dream3d_input, VolumeDataContainer_Path, orientations_type):
     with h5py.File(path_dream3d_input, 'r') as file_dream3d_input:
