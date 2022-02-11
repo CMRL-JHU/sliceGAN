@@ -7,6 +7,7 @@ import utils_dream3d, utils_json, plot_hist
 
 def anchor_dream3d_paths(plane_suffixes, ebsd_paths, output_path, json_path):
     utils_dream3d.replace_json_paths(json_path, plane_suffixes, ebsd_paths=ebsd_paths, output_path=output_path)
+    utils_dream3d.update_attribute_arrays_expected(json_path)
     
 def convert_ebsd_to_dream3d(dream3d_path, json_path):
     utils_dream3d.call_dream3d(dream3d_path, json_path)

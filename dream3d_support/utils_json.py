@@ -49,9 +49,10 @@ def pull_input(path_inputs):
         with open(path_inputs,"r") as f:
             return json.load(f)
 
-def push_input(path_inputs, inputs, padding=3*" "):
+def push_input(path_inputs, inputs, indent=4):
     path = os.path.split(path_inputs)[0]
     if len(path) > 0:
         os.makedirs(path, exist_ok=True)
     with open(path_inputs,"w") as f:
-        f.write(newline_delimited_json_dumps(inputs, padding=padding))
+        json.dump(inputs, f, indent=indent, separators=(",", ": "), sort_keys=True)
+        #f.write(newline_delimited_json_dumps(inputs, padding=padding))

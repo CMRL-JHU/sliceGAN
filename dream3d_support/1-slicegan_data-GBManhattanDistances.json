@@ -21,8 +21,23 @@
                                     "Object Type": "DataArray<float>",
                                     "Path": "/DataContainers/ImageDataContainer/CellData",
                                     "Tuple Dimensions": [
-                                        127,
-                                        127,
+                                        128,
+                                        128,
+                                        128
+                                    ],
+                                    "Version": 2
+                                },
+                                {
+                                    "Component Dimensions": [
+                                        1
+                                    ],
+                                    "Flag": 2,
+                                    "Name": "Phases",
+                                    "Object Type": "DataArray<int32_t>",
+                                    "Path": "/DataContainers/ImageDataContainer/CellData",
+                                    "Tuple Dimensions": [
+                                        128,
+                                        128,
                                         128
                                     ],
                                     "Version": 2
@@ -145,7 +160,7 @@
         "Filter_Human_Label": "Write DREAM.3D Data File",
         "Filter_Name": "DataContainerWriter",
         "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
-        "OutputFile": "C:/Users/nirahve/Downloads/school/research/SliceGAN/SliceGAN/Output/Prior_Particles/2-slicegan_data.dream3d",
+        "OutputFile": "C:\\Users\\nirahve\\Downloads\\school\\research\\SliceGAN\\SliceGAN\\Output\\Prior_Particles\\2-slicegan_data.dream3d",
         "WriteTimeSeries": 0,
         "WriteXdmfFile": 1
     },

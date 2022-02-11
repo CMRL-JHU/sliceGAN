@@ -1,0 +1,3 @@
+from utils_dream3d import update_attribute_arrays_expected
+
+update_attribute_arrays_expected("1-slicegan_data-GBManhattanDistances.json")

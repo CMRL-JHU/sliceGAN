@@ -191,42 +191,7 @@ def export_data_hdf5(data, geometry, path_output, path_dream3d_input, path_Volum
                 name,
                 properties["attribute_array_type"]
                 )
-    
-def push_attribute_arrays_expected(path_json, path_VolumeDataContainer, data, geometry):
-    
-    # pull dream3d pipeline
-    data_json = utils_json.pull_input(path_json)
-    
-    # find the desired attribute matrix  
-    filter_number = find_filter_number(data_json, "DataContainerReader")
-    for i, data_container in enumerate(data_json[filter_number]["InputFileDataContainerArrayProxy"]["Data Containers"]):
-        if data_container["Name"] == path_VolumeDataContainer.rsplit("/",1)[-1]:
-            for j, attribute_matrix in enumerate(data_json[filter_number]["InputFileDataContainerArrayProxy"]["Data Containers"][i]["Attribute Matricies"]):
-                if attribute_matrix["Name"] == "CellData":
-                
-                    # construct desired replacement data array
-                    data_arrays = []
-                    for name, properties in zip(data.keys(), data.values()):
-                        data_arrays += [{
-                            "Component Dimensions":[properties["data"].shape[-1]],
-                            "Flag": 2,
-                            "Name": name,
-                            "Object Type": properties["attribute_array_type"],
-                            "Path": path_VolumeDataContainer+"/"+"CellData",
-                            "Tuple Dimensions": geometry["dims"],
-                            "Version": 2
-                        }]
-                    data_json[filter_number]["InputFileDataContainerArrayProxy"]["Data Containers"][i]["Attribute Matricies"][j]["Data Arrays"] = data_arrays
-                    
-                    # push inputs to dream3d pipeline
-                    utils_json.push_input(path_json, data_json, padding=4*" ")
-                    return
-                    
-def find_filter_number(data_json, name_filter):
-    for id_filter in data_json:
-        if data_json[id_filter]["Filter_Name"] == name_filter:
-            return id_filter
-   
+
 def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suffixes, dream3d_path, orientations_types, input_type):
 
     ##set paths
@@ -266,11 +231,11 @@ def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suff
     if os.path.exists(path_json):
     
         print("Anchoring DREAM.3D paths...")
-        # anchor dream3d json files
+        # replace paths in dream3d json files
         utils_dream3d.replace_json_paths(path_json,plane_suffixes,input_path=path_output,output_path=path_dream3d_output,image_path=path_slice_image_in)
+        # replace expected attribute arrays in dream3d json files
+        utils_dream3d.update_attribute_arrays_expected(path_json)
         print("Done Anchoring")
-        
-        push_attribute_arrays_expected(path_json, path_VolumeDataContainer, data, geometry)
     
         print("Constructing .XDMF and .PNG files...")
         #run dream.3d file (to convert orientations to useful values, find "error" data, create xdmf files, etc...)
