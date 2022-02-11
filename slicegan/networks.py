@@ -45,9 +45,9 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
     n_power = int(np.log(img_size)/np.log(2))
     # find lays-1 powers of 2 starting from n_power
     nc = [2**n for n in range(n_power, n_power+lays-1)]
-    # discriminator channels should increase in size,
-    # generator channels should decrease
-    df, gf = [img_channels, *nc, 1], [z_channels, *nc[::-1], img_channels]
+    # discriminator channels should decrease in size,
+    # generator channels should increase
+    df, gf = [img_channels, *nc[::-1], 1], [z_channels, *nc, img_channels]
     
     ### find padding
     ## discriminator
