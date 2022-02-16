@@ -1,0 +1,77 @@
+{
+    "0": {
+        "CellAttributeMatrixName": "CellData",
+        "CellEnsembleAttributeMatrixName": "CellEnsembleData",
+        "DataContainerName": "ImageDataContainer",
+        "DegreesToRadians": 1,
+        "EdaxHexagonalAlignment": 1,
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Import Oxford Instr. EBSD Data (.ctf)",
+        "Filter_Name": "ReadCtfData",
+        "Filter_Uuid": "{d1df969c-0428-53c3-b61d-99ea2bb6da28}",
+        "InputFile": "/home/nirahve/school/research/slicegan/Input/AA7050 XY Specimen 1 Site 1 Map Data 1.ctf"
+    },
+    "1": {
+        "FilterVersion": "6.5.141",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Convert Orientation Representation",
+        "Filter_Name": "ConvertOrientations",
+        "Filter_Uuid": "{e5629880-98c4-5656-82b8-c9fe2b9744de}",
+        "InputOrientationArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "EulerAngles",
+            "Data Container Name": "ImageDataContainer"
+        },
+        "InputType": 0,
+        "OutputOrientationArrayName": "Quats",
+        "OutputType": 2
+    },
+    "2": {
+        "DestinationArrayName": "Mask",
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Threshold Objects (Advanced)",
+        "Filter_Name": "MultiThresholdObjects2",
+        "Filter_Uuid": "{686d5393-2b02-5c86-b887-dd81a8ae80f2}",
+        "SelectedThresholds": {
+            "Attribute Matrix Name": "CellData",
+            "Data Container Name": "ImageDataContainer",
+            "Thresholds": [
+                {
+                    "Attribute Array Name": "Error",
+                    "Comparison Operator": 2,
+                    "Comparison Value": 0,
+                    "Union Operator": 0
+                }
+            ]
+        }
+    },
+    "3": {
+        "FilterVersion": "1.0.123",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Clear Data (Mask)",
+        "Filter_Name": "ClearDataMask",
+        "Filter_Uuid": "{39df0167-1ef8-5e01-8702-c08c8afba1c0}",
+        "MaskArrayPath": {
+            "Attribute Matrix Name": "CellData",
+            "Data Array Name": "Mask",
+            "Data Container Name": "ImageDataContainer"
+        }
+    },
+    "4": {
+        "FilterVersion": "1.2.815",
+        "Filter_Enabled": true,
+        "Filter_Human_Label": "Write DREAM.3D Data File",
+        "Filter_Name": "DataContainerWriter",
+        "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
+        "OutputFile": "/home/nirahve/school/research/slicegan/Input/AA7050 XY Specimen 1 Site 1 Map Data 1.dream3d",
+        "WriteTimeSeries": 0,
+        "WriteXdmfFile": 1
+    },
+    "PipelineBuilder": {
+        "Name": "0-ebsd_data",
+        "Number_Filters": 5,
+        "Version": 6
+    }
+}

@@ -3,11 +3,11 @@ import numpy as np
 
 #returns numpy class of datatype
 def get_datatype(datatype):
-    if datatype == "float32":
+    if datatype in ["float32", format_string("DataArray<float>"  )]:
         return np.float32
-    if datatype == "int32":
+    if datatype in ["int32"  , format_string("DataArray<int32_t>")]:
         return np.int32
-    if datatype == "uint8":
+    if datatype in ["uint8"  , format_string("DataArray<bool>"   )]:
         return np.uint8
         
 # Find all filter ids in a DREAM.3D *.JSON file with name
@@ -23,48 +23,32 @@ def get_filter_ids(data_json, name_filter):
             filter_ids += [filter_id]
             
     return filter_ids
-        
+
 #slicegan has no knowlegde of crystallography data, resolution, or naming schema, so it is imported from the .dream3d file
-def import_data_ebsd_reference(path_dream3d_input, VolumeDataContainer_Path, orientations_type):
-    
-    with h5py.File(path_dream3d_input, 'r') as file_dream3d_input:
-    
-        # Search through *.DREAM3D file to find all data containers
-        DataContainers = []
-        for DataContainer in file_dream3d_input["DataContainers"]:
-            DataContainers.append(file_dream3d_input["DataContainers"+"/"+DataContainer])
+def import_resolution(ebsd_paths, name_planes, path_Geometry):
+
+    size_voxels = []
+    for ebsd_path in ebsd_paths:
             
         # Search through all data containers to find reference information
-        name_planes       = []
-        size_voxels       = []
-        CellEnsembleData = []
-        for DataContainer in DataContainers:
-            # Because there are 3 images in the source file,
-            # each data container contains a plane represented by two basis vectors trailing the path name:
-            #     ('yz','xz', or 'xy')
-            name_planes      += [filter_string(DataContainer.name, [VolumeDataContainer_Path], "xyzXYZ").lower()]
+        with h5py.File(ebsd_path, 'r') as ebsd_file:
+
             # Each image is 2D, so the spacing in Z dimension is inconsequential
-            size_voxels      += [DataContainer["_SIMPL_GEOMETRY/SPACING"][:-1].tolist()]
-            CellEnsembleData.append(DataContainer["CellEnsembleData"])
-        path_crystallography = CellEnsembleData[0].name
+            size_voxels += [ebsd_file[path_Geometry+"/"+"SPACING"][:-1].tolist()]
         
-        # If the input contains 3 planes, we are trying to reconstruct a 3D microstructure.
-        # The side resolutions should be the same in order to reconstruct properly.
-        # This function allows us to determine if the side resolutions are compatible
-        # And gives us the common resolutions [x,y,z] if they exist
-        if len(name_planes) == 3:
-            size_voxels = find_common_global_value(name_planes, size_voxels)
-        # If the input contains 1 plane, we're trying to reconstruct a 2D microstructure.
-        # No compatibility check is required, and the resolution is given as [x,y,1]
-        else:
-            size_voxels = size_voxels+[1]
-        
-        # A microstructure with no common resolutions or with differing crystallographic data
-        # will not be able to be merged together at the end of the training run.
-        # To avoid wasting training time, these merge errors are caught before the run begins
-        check_errors(name_planes, size_voxels, CellEnsembleData, orientations_type)
-        
-    return name_planes, size_voxels, path_crystallography
+    # If the input contains 3 planes, we are trying to reconstruct a 3D microstructure.
+    # The side resolutions should be the same in order to reconstruct properly.
+    # This function allows us to determine if the side resolutions are compatible
+    # And gives us the common resolutions [x,y,z] if they exist
+    if len(name_planes) == 3:
+        size_voxels = find_common_global_value(name_planes, size_voxels)
+        check_error_resolution(size_voxels)
+    # If the input contains 1 plane, we're trying to reconstruct a 2D microstructure.
+    # No compatibility check is required, and the resolution is given as [x,y,1]
+    else:
+        size_voxels = size_voxels+[1]
+
+    return size_voxels
     
 #filter a string with blacklist and whitelist
 def filter_string(string, blacklist=None, whitelist=None):
@@ -73,19 +57,7 @@ def filter_string(string, blacklist=None, whitelist=None):
             string = string.replace(entry, "")
     if not whitelist is None:
         string = "".join(list(filter(lambda char: char in set(whitelist), string)))
-    return string
-    
-#check for errors that would prevent data reconciliation
-def check_errors(name_planes, size_voxels, CellEnsembleData, orientations_type):
-    if len(name_planes) < 3 and not is_crystallographic(orientations_type):
-        pass
-    elif len(name_planes) < 3 and is_crystallographic(orientations_type):
-        check_error_crystallography(CellEnsembleData,orientations_type)
-    elif len(name_planes) == 3 and not is_crystallographic(orientations_type):
-        check_error_resolution(size_voxels)
-    else:
-        check_error_crystallography(CellEnsembleData,orientations_type)
-        check_error_resolution(size_voxels)
+    return string  
         
 #check if there is a common voxel size for each side. if there is not, then there will be no way to reconcile the dream3d data with the slicegan data at the end.
 def check_error_resolution(size_voxels):
@@ -93,9 +65,24 @@ def check_error_resolution(size_voxels):
         raise ValueError(size_voxels)
     
 #check if the crystallography matches exactly. if it does not, then there will be no way to reconcile the dream3d data with the slicegan data at the end.
-def check_error_crystallography(CellEnsembleData, orientations_type):
-    if is_crystallographic(orientations_type):
-        if not groups_are_equal(CellEnsembleData):
+def check_error_crystallography(ebsd_paths, path_CellEnsembleData, orientations_types):
+
+    # If the reference data should contain multiple images crystallographic data
+    if len(ebsd_paths) == 3 and is_crystallographic(orientations_types):
+
+        # Open all the ebsd files
+        ebsd_files = [h5py.File(ebsd_path, 'r') for ebsd_path in ebsd_paths]
+        
+        # Gather all the CellEnsembleData groups into a list
+        CellEnsembleData = [file[path_CellEnsembleData] for file in ebsd_files]
+
+        # Check if the groups are exactly equal
+        result = groups_are_equal(CellEnsembleData)
+
+        # Close all the ebsd files
+        [file.close() for file in ebsd_files]
+            
+        if result:
             raise RuntimeError("Crystallography data does not match between all 3 planes. No way to link crystallography")
             
 #returns true if the value is a crystallographic data type
@@ -129,22 +116,40 @@ def rotate_90_degrees(array, direction=1, n=1):
     return array
     
 #rotate all the CellData arrays within dream3d
-def rotate_all(DataContainer,n):
-    for i in range(n):
-        dims = DataContainer["CellData"].attrs["TupleDimensions"]
-        dims[0], dims[1] = dims[1], dims[0]
-        DataContainer["CellData"].attrs["TupleDimensions"] = np.uint64(dims)
-        DataContainer["_SIMPL_GEOMETRY/DIMENSIONS"][:] = np.uint64(dims)
-        size_voxels = DataContainer["_SIMPL_GEOMETRY/SPACING"][:]
-        size_voxels[0], size_voxels[1] = size_voxels[1], size_voxels[0]
-        DataContainer["_SIMPL_GEOMETRY/SPACING"][:] = size_voxels
-        for item in DataContainer["CellData"]:
-            DataContainer["CellData/"+item].attrs["TupleDimensions"] = np.uint64(dims)
-            DataContainer["CellData/"+item].attrs["Tuple Axis Dimensions"] = format_string("x="+str(dims[0])+",y="+str(dims[1])+",z="+str(dims[2]))
-            if   DataContainer["CellData/"+item].attrs["ObjectType"] == format_string("DataArray<float>"):
-                DataContainer["CellData/"+item][:] = np.float32(replace_empty_z_container(rotate_90_degrees(remove_empty_z_container(DataContainer["CellData/"+item][:]), n=n)))
-            elif DataContainer["CellData/"+item].attrs["ObjectType"] == format_string("DataArray<int32_t>"):
-                DataContainer["CellData/"+item][:] = np.int32(replace_empty_z_container(rotate_90_degrees(remove_empty_z_container(DataContainer["CellData/"+item][:]), n=n)))
+def rotate_all(path_input ,n, path_CellData, path_Geometry):
+
+    with h5py.File(path_input, 'r+') as file_input:
+
+        # rotate n times
+        for i in range(n):
+            
+            # gather geometry data
+            dims        = file_input[path_Geometry+"/"+"DIMENSIONS"][:]
+            size_voxels = file_input[path_Geometry+"/"+"SPACING"   ][:]
+
+            # swap x and y geometry data
+            dims[0], dims[1] = dims[1], dims[0]
+            size_voxels[0], size_voxels[1] = size_voxels[1], size_voxels[0]
+
+            # replace geometry data
+            file_input[path_CellData].attrs["TupleDimensions"] = dims.astype(np.uint64)
+            file_input[path_Geometry+"/"+"DIMENSIONS"][:] = dims.astype(np.uint64)
+            file_input[path_Geometry+"/"+"SPACING"   ][:] = size_voxels
+
+            for item in file_input[path_CellData]:
+
+                # replace geometry data
+                dims_string = ','.join(['='.join([name,str(value)]) for name,value in zip(['x','y','z'],dims)])
+                file_input[path_CellData+"/"+item].attrs["TupleDimensions"      ] = dims.astype(np.uint64)
+                file_input[path_CellData+"/"+item].attrs["Tuple Axis Dimensions"] = dims_string
+
+                # rotate data
+                data = file_input[path_CellData+"/"+item][:]
+                data = remove_empty_z_container(data)
+                data = rotate_90_degrees(data, n=n)
+                data = replace_empty_z_container(data)
+                data = data.astype(get_datatype(file_input[path_CellData+"/"+item].attrs["ObjectType"]))
+                file_input[path_CellData+"/"+item][:] = data
 
 # Create an empty DREAM.3D file with just the bare minimum to be recognized by DREAM.3D
 def create_file_dream3d(path_output):
@@ -271,74 +276,31 @@ def call_dream3d(dream3d_path, json_path):
         subprocess.call([path(dream3d_path+"/bin/PipelineRunner"),"-p",path(json_path)])
 
 #replace the file paths in dream3d file because dream3d cannot do relative pathing
-def replace_json_paths(json_path,plane_names,input_path=None,ebsd_paths=None,output_path=None,image_path=None):
-
-    def pad_with_zeros(current_value, max_value):
-        return (int(np.log10(max_value))-int(np.log10(current_value)))*"0"+str(current_value)
-        
-    def numeric_dict(data):
-        return {key:value for key, value in zip(data.keys(), data.values()) if key.isnumeric()}
-
-    def find_next_name_change(data,item):
-
-        # filters always have numeric ids. only search through those
-        data = numeric_dict(data)
-
-        # filter ids after the filter of interest
-        filter_ids = [pad_with_zeros(filter_id, len(data)) for filter_id in range(int(item)+1,len(data))]
-        
-        for filter_id in filter_ids:
-        
-            # catch ran into next data container reader
-            if data[filter_id]["Filter_Name"] == "DataContainerReader":
-                break
-            
-            #dream3d pipeline runner cannot read from groups that have been renamed. that was a fun bug hunt...
-            if data[filter_id]["Filter_Name"] == "CopyDataContainer":
-                return data[filter_id]["NewDataContainerName"]
-                
-        raise ValueError("No next name change")
+def replace_json_paths(json_path,input_path=None,output_path=None,image_path=None):
     
     # Read the DREAM.3D *.JSON file
     with open(json_path, 'r') as json_file:
         data = json.load(json_file)
-        
-    ## Replace input paths
-    # For multiple input files
-    if ebsd_paths is not None:
-    
-        for plane_name, ebsd_path in zip(plane_names, ebsd_paths):
-        
-            # For *.CTF data
-            for filter_id in get_filter_ids(data, "ReadCtfData"):
-                if plane_name.lower() in data[filter_id]["DataContainerName"].replace("ImageDataContainer","").lower():
-                    data[filter_id]["InputFile"] = ebsd_path
-                    
-            # For *.DREAM3D data
-            for filter_id in get_filter_ids(data, "DataContainerReader"):
-                # DREAM.3D cannot assign a name to an imported data container upon load
-                # The data container must be renamed,
-                # BUT the pipeline runner cannot read renamed data containers
-                # So the data container must be copied with a new name and then deleted
-                # Therefor the new name must be found somewhere after the DataContainerReader
-                name = find_next_name_change(data, filter_id)
-                if plane_name.lower() in name.replace("ImageDataContainer","").lower():
-                    data[filter_id]["InputFile"] = ebsd_path
-    
-    # For a single input file
-    elif input_path is not None:
-        filter_id = get_filter_ids(data, "DataContainerReader")[0]
-        data[filter_id]["InputFile"] = input_path
+
+    # Replace input paths
+    if input_path is not None:
+
+        for filter_type in ["DataContainerReader", "ReadCtfData"]:
+
+            filter_ids = get_filter_ids(data, filter_type)
+            if len(filter_ids) > 0:
+                data[filter_ids[0]]["InputFile"] = input_path
+                break
             
     # Replace *.DREAM3D output paths
     if output_path is not None:
-        filter_id = get_filter_ids(data, "DataContainerWriter")[0]
-        data[filter_id]["OutputFile"] = output_path
+        filter_ids = get_filter_ids(data, "DataContainerWriter")
+        data[filter_ids[0]]["OutputFile"] = output_path
         
     # Replace *.PNG output paths
     if image_path is not None:
-        filter_id = get_filter_ids(data, "ITKImageWriter")[0]
-        data[filter_id]["FileName"] = image_path
+        filter_ids = get_filter_ids(data, "ITKImageWriter")[0]
+        data[filter_ids[0]]["FileName"] = image_path
     
     # Write the modified DREAM.3D *.JSON file
     with open(json_path, 'w') as json_file:
@@ -429,7 +391,7 @@ def find_common_global_value(planes, local_values):
         if not all(direction == direction[0]):
             conflicting_planes = np.array(planes)[np.nonzero(direction)]
             direction_names = ["x","y","z"]
-            error_message = "Global values do not match: Planes "+str.lower(str(conflicting_planes))+" disagree in "+direction_names[i]+" direction: "+str(direction)
+            error_message = "Global values do not match: Planes "+str(conflicting_planes).lower()+" disagree in "+direction_names[i]+" direction: "+str(direction)
             return error_message
         global_value[:,i] = direction
         i += 1

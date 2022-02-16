@@ -139,17 +139,12 @@ def append_dream3d_data(data, geometry, properties):
 def get_sum(data):
     return np.sum(np.absolute(data),axis=3).reshape(np.append(data.shape[:-1],1).astype(tuple))
 
-def export_data_hdf5(data, geometry, path_output, path_dream3d_input, path_VolumeDataContainer, path_crystallography):
-
-    # specify hdf paths
-    path_CellData         = path_VolumeDataContainer+"/"+"CellData"
-    path_CellEnsembleData = path_VolumeDataContainer+"/"+"CellEnsembleData"
-    path_Geometry         = path_VolumeDataContainer+"/"+"_SIMPL_GEOMETRY"
+def export_data_hdf5(data, geometry, path_output, path_dream3d_input, path_CellData, path_CellEnsembleData, path_Geometry):
     
     # create the dream3d file
     utils_dream3d.create_file_dream3d (path_output)
     utils_dream3d.insert_geometry     (path_output, geometry, path_Geometry)
-    utils_dream3d.copy_crystallography(path_output, path_dream3d_input, path_CellEnsembleData, path_crystallography)
+    utils_dream3d.copy_crystallography(path_output, path_dream3d_input, path_CellEnsembleData, path_CellEnsembleData)
     for name, properties in zip(data.keys(), data.values()):
         utils_dream3d.insert_attribute_array(
             path_output   = path_output,
@@ -160,12 +155,12 @@ def export_data_hdf5(data, geometry, path_output, path_dream3d_input, path_Volum
             path_Geometry = path_Geometry 
             )
 
-def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suffixes, dream3d_path, orientations_types, input_type):
+def convert_slicegan_to_dream3d(dir_path, path_project, name_project, ebsd_paths, plane_names, dream3d_path, orientations_types, input_type):
 
     ##set paths
     #directory paths
+    ebsd_paths                = [os.path.realpath(dir_path+"/Input/"+ebsd_path.rsplit('.',1)[0]+".dream3d") for ebsd_path in ebsd_paths]
     path_json                 = os.path.realpath(dir_path+"/dream3d_support/"+"1-slicegan_data-"+orientations_types[0]+".json")
-    path_dream3d_input        = os.path.realpath(dir_path+"/dream3d_support/pipeline_output/"+"0-ebsd_data.dream3d")
     path_slice_image_in       = os.path.realpath(dir_path+"/dream3d_support/pipeline_output/"+"slices.png")
     path_slicegan_input_text  = os.path.realpath(path_project+"/"+name_project+"/"+name_project+".txt")
     path_slicegan_input_tiff  = os.path.realpath(path_project+"/"+name_project+"/"+name_project+".tif")
@@ -174,6 +169,9 @@ def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suff
     path_slice_image_out      = os.path.realpath(path_project+"/"+name_project)
     #hdf5 path
     path_VolumeDataContainer  = "/DataContainers/ImageDataContainer"
+    path_CellData         = path_VolumeDataContainer+"/"+"CellData"
+    path_CellEnsembleData = path_VolumeDataContainer+"/"+"CellEnsembleData"
+    path_Geometry         = path_VolumeDataContainer+"/"+"_SIMPL_GEOMETRY"
     
     print("Converting SliceGAN files to DREAM.3D files...")
     # import data
@@ -181,9 +179,9 @@ def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suff
         shape, numbers_input = import_text_file(path_slicegan_input_text)
     else:
         shape, numbers_input = import_tiff_file(path_slicegan_input_tiff)
-    #import ebsd reference data
-    name_planes, size_voxels, path_crystallography = \
-        utils_dream3d.import_data_ebsd_reference(path_dream3d_input, path_VolumeDataContainer, orientations_types)
+    # import resolution data
+    size_voxels = utils_dream3d.import_resolution(ebsd_paths, plane_names, path_Geometry)
+
     #get information pertaining to orientation types
     properties = get_properties()
     #get geometry information (dims, origin, resolution)
@@ -193,14 +191,14 @@ def convert_slicegan_to_dream3d(dir_path, path_project, name_project, plane_suff
     #append extra data as needed
     data = append_dream3d_data(data, geometry, properties)
     #export to hdf5
-    export_data_hdf5(data, geometry, path_output, path_dream3d_input, path_VolumeDataContainer, path_crystallography)
+    export_data_hdf5(data, geometry, path_output, ebsd_paths[0], path_CellData, path_CellEnsembleData, path_Geometry)
     print("Done Converting")
     
     if os.path.exists(path_json):
     
         print("Anchoring DREAM.3D paths...")
         # replace paths in dream3d json files
-        utils_dream3d.replace_json_paths(path_json,plane_suffixes,input_path=path_output,output_path=path_dream3d_output,image_path=path_slice_image_in)
+        utils_dream3d.replace_json_paths(path_json, input_path=path_output, output_path=path_dream3d_output, image_path=path_slice_image_in)
         # replace expected attribute arrays in dream3d json files
         utils_dream3d.update_attribute_arrays_expected(path_json)
         print("Done Anchoring")

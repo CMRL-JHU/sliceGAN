@@ -58,16 +58,16 @@ dream3d_path       = data["dream3d_path"      ]
 # list of names of .ctf ebsd files (or .dream3d files)
 # must be in /Input directory
 ebsd_paths         = data["ebsd_paths"        ]
-# the suffixes of the data containers containing plane information.
+# the names of the planes directly corresponding to the ebsd paths
 # order matters! see included orientation reference.
-# the order of the data containers in dream3d do not matter, only what you put here.
-# suffix should not contain x,y,z except to denote plane basis.
-plane_suffixes     = data["plane_suffixes"    ]
+# should only contain x,y,z to denote plane basis.
+# ex: ["YZ","XZ","XY"]
+plane_names        = data["plane_names"       ]
 # rotation is n 90 degree counter-clockwise rotations.
 # see included orientation reference to determine correct rotations
 plane_rotations    = data["plane_rotations"   ]
 # prefix to .tif files.
-# EX: tif_names=AA7050, plane_suffixes=["YZ","XY","XY"]
+# EX: tif_names=AA7050, plane_names=["YZ","XZ","XY"]
 # will be renamed to "AA7050_YZ.tif", "AA7050_XZ.tif", "AA7050_XY.tif"
 tif_names          = data["tif_names"         ]
 # valid entries are specified under dream3d_support/properties.json:
@@ -136,27 +136,28 @@ if Dream3d_Support:
         ext = ".txt"
     else:
         ext = ".tif"
-    for plane_suffix in plane_suffixes:
+    for plane_name in plane_names:
         # data_path.append("Input/"+Project_name+"/"+tif_names+plane_suffix+".tif")   ############# doesn't work for optimize_parameters 
-        data_path.append("Input/"+tif_names+plane_suffix+ext)
+        data_path.append("Input/"+tif_names+"_"+plane_name+ext)
 
 ## Create Networks
 netD, netG = networks.slicegan_nets(path_input, image_type, img_size, img_channels, z_channels, n_dims)
 
 # Dream3d Preprocessor (converts EBSD data to SliceGAN compatible Tiff images)
 if Dream3d_Support and Training:
-        preprocessor.convert_ebsd_to_tiff(dir_path,Project_name,ebsd_paths,dream3d_path,tif_path,plane_suffixes,plane_rotations,data_type,orientations_types,orientations_names,n_dims,plot_orientations)
+    preprocessor.convert_ebsd_to_tiff(dir_path,Project_name,ebsd_paths,plane_names,dream3d_path,tif_path,plane_rotations,data_type,orientations_types,orientations_names,plot_orientations)
 
 # Train
 if Training:
     print('Loading Dataset...')
-    # datasets = preprocessing.batch(data_path, data_type, img_size, scale_factor, Normalize)
-    # model.train(path_input, Project_path, image_type, datasets, netD, netG, img_channels, img_size, z_channels, n_dims)
+    #datasets = preprocessing.batch(data_path, data_type, img_size, scale_factor, Normalize)
+    #model.train(path_input, Project_path, image_type, datasets, netD, netG, img_channels, img_size, z_channels, n_dims)
 
 # Generate
 else:
+    pass
     img, raw, netG = util.test_img(Project_path, image_type, netG(), n_dims, img_channels, data_type, nz=z_channels, lf=lf, periodic=periodic)
 
 # Dream3d Postprocessor (converts Tiff stacks into DREAM.3D files)
 if Dream3d_Support and not Training:
-        postprocessor.convert_slicegan_to_dream3d(dir_path, Project_dir, Project_name, plane_suffixes, dream3d_path, orientations_types, input_type=data_type)
+    postprocessor.convert_slicegan_to_dream3d(dir_path, Project_dir, Project_name, ebsd_paths, plane_names, dream3d_path, orientations_types, input_type=data_type)
