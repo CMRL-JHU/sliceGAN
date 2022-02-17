@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
 	"main":{
 		"Project_name"      : "Prior_Particles",
@@ -46,54 +45,3 @@
 		"gns"    : 0.01
 	}
 }
-=======
-{
-	"main":{
-		"Project_name"      : "Prior_Particles",
-		"Project_dir"       : "Output",
-		"image_type"        : "colour",
-		"data_type"         : "text",
-		"data_path"         : [],
-		"Normalize"         : true,
-		"n_dims"            : 3,
-		"img_size"          : 64,
-		"img_channels"      : 4,
-		"scale_factor"      : 1,
-		"z_channels"        : 16,
-		"Dream3d_Support"   : true,
-		"dream3d_path"      : "../DREAM3D",
-		"ebsd_paths"        : ["5.3-yz-cleaned_grains.dream3d","5.3-yz-cleaned_grains.dream3d","5.3-xy-cleaned_grains.dream3d"],
-		"plane_suffixes"    : ["_YZ","_XZ","_XY"],
-		"plane_rotations"   : [1,1,0],
-		"tif_names"         : "AA7050",
-		"orientations_types": ["Quats"],
-		"orientations_names": ["FeatureAvgQuats"],
-		"plot_orientations" : false,
-		"periodic"          : false,
-		"lf"                : 6
-	},
-	"model":{
-		"num_epochs"  : 20,
-		"critic_iters": 5,
-		"batch_size"  : 64,
-		"ngpu"        : 1,
-		"workers"     : 0,
-		"lrg"         : 0.0001,
-		"lrd"         : 0.0001,
-		"G_beta_1"    : 0.7,
-		"G_beta_2"    : 0.9,
-		"D_beta_1"    : 0.7,
-		"D_beta_2"    : 0.9,
-		"Lambda"      : 10
-	},
-	"networks":{
-		"lays"   : 5,
-		"ks"     : 4,
-		"st"     : 2,
-		"dp"     : [1,1,1,1,0],
-		"gp"     : [2,2,2,2,3],
-		"dns"    : 0.01,
-		"gns"    : 0.01
-	}
-}
->>>>>>> ce6913369c004e0bfedfea7e52ffe22f8e7a5c5c

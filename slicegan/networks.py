@@ -34,7 +34,6 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
     util.warn_out(warn_string)
     
     # set kernel sizes and strides for each layer
-<<<<<<< HEAD
     dk = gk = [ks ]*lays
     ds = gs = [st ]*lays
     
@@ -58,35 +57,7 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
     gp = [np.ceil(k/s).astype(type(p)) if p<k/s else p for k,s,p in zip(gk,gs,[0]*lays)]
     # find padding required to produce a natural latent space vector
     gp = util.find_padding_deconvolution(gk,gs,img_size,gp,[ks-1]*lays)
-
-=======
-    dk = [ks ]*lays 
-    gk = [ks ]*lays
-    ds = [st ]*lays 
-    gs = [st ]*lays
     
-    # construct number of i/o channels for each filter
-    n_power = int(np.log(img_size)/np.log(2)) # 2^n = img_size ==> n
-    nc = [2**n for n in range(n_power, n_power+lays-1)]
-    df, gf = [img_channels, *nc[::-1], 1], [z_channels, *nc, img_channels]
-    
-    ### find padding
-    ## discriminator
-    dp = util.find_padding(dk, ds, df)
-    ## generator
-    # find padding required by deconvolution
-    gp = util.find_padding(gk, gs, gf)
-    # find padding required by information density constraint
-    gp = [np.ceil(k/s).astype(type(p)) if p<k/s else p for k,s,p in zip(gk,gs,gp)]
-    # find padding required to produce a natural latent space vector
-    gp = util.bump_padding(gk,gs,gp,img_size,[ks-1]*lays)
-    
-    #find minimum image size
-    img_size_min = util.find_min_input_size_convolution(dk,ds,dp,"image_size",1)
-    if img_size < img_size_min:
-        raise ValueError("Image size (%(img_size)s) is less than minimum image size (%(img_size_min)s). Cannot convolve." %{"img_size":img_size, "img_size_min":img_size_min})
-    
->>>>>>> ce6913369c004e0bfedfea7e52ffe22f8e7a5c5c
     # Make nets
     class Generator(nn.Module):
         def __init__(self):
@@ -119,8 +90,6 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
             return x
         def __str__(self):
             return(str(self.sequential))
-
-    
 
     class Discriminator(nn.Module):
         def __init__(self):
