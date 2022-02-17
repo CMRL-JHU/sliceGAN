@@ -308,11 +308,40 @@ def find_min_input_size_deconvolution(k,s,p,name,size_current,silent=False):
             raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
     
+<<<<<<< HEAD
 def find_padding_deconvolution(k,s,output_size,bounds_min,bounds_max):
+=======
+def find_padding(k, s, f):
+    p = []
+    for i in range(len(f)-1):
+        #deconvolution
+        if f[i+1] >= f[i]:
+            padding = ((f[i]-1)*s[i]-f[i+1]+k[i])/2
+            #if this catch block is reached, the deconvolution is being asked to do something it cannot
+            #a padding of 1 is assumed because it seems to be a necessary assumption for impossible deconvolutions
+            if padding < 0:
+                padding = 1
+        #convolution
+        else:
+            padding = ((f[i+1]-1)*s[i]-f[i]+k[i])/2
+            #if this catch block is reached, the convolution is being asked to do something it cannot
+            #a padding of 0 is assumed because it seems to be a necessary assumption for impossible convolutions
+            if padding < 0:
+                padding = 0
+        if not(padding%1 == 0):
+            warn_string = "Invalid padding for layer %(i)i: %(padding)s " %{"i":i+1,"padding":padding}
+            warn_out(warn_string)
+        p += [int(padding)]
+    return p
+    
+def bump_padding(k,s,p,output_size,bounds):
+
+>>>>>>> ce6913369c004e0bfedfea7e52ffe22f8e7a5c5c
     # raise the padding values by:
     # counting from right to left,
     # treating each convolution as a digit,
     # bounding each digit between [p[i],bounds[i]]
+<<<<<<< HEAD
     for p in find_permutations_between_bounds(bounds_min,bounds_max):
         if find_min_input_size_deconvolution(k,s,p,"lz",output_size,silent=True):
             return p
@@ -333,6 +362,18 @@ def find_permutations_between_bounds(bounds_min,bounds_max):
     for i in range(bounds_min[0], max(bounds_min[0],bounds_max[0]+1)):
         if len(bounds_min) > 1:
             for j in find_permutations_between_bounds(bounds_min[1:],bounds_max[1:]):
+=======
+    for p in count_between_bounds(p,bounds):
+        if find_min_input_size_deconvolution(k,s,p,"lz",output_size,silent=True):
+            return p
+    raise ValueError("Could not find value for padding that would result in natural output size")
+    
+def count_between_bounds(p,bounds):
+    ps = []
+    for i in range(p[0], max(p[0],bounds[0]+1)):
+        if len(p) > 1:
+            for j in count_between_bounds(p[1:],bounds[1:]):
+>>>>>>> ce6913369c004e0bfedfea7e52ffe22f8e7a5c5c
                 ps += [[i]+j]
         else:
             ps += [[i]]

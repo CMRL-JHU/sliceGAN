@@ -181,12 +181,19 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
 
             ## Generate a noise and fake image
             # Only one generation is needed because all 3 (orthogonal) discriminators will use it
+<<<<<<< HEAD
             noise = torch.randn(D_batch_size, nz, *[lz]*n_dims, device=device)
             # Must be detached because otherwise it become associated with the first discriminator's graph
             # and cannot be called again for the 2nd and 3rd discriminator
             data_fake = netG(noise).detach()
 
             for dim, (netD, optD, data_real, c_perm_dim) in enumerate(zip(netDs, optDs, dataset, c_perm)):
+=======
+            fake_data = netG(noise).detach()
+            print("fake data shape: ", fake_data.shape)
+            
+            for dim, (netD, optD, data) in enumerate(zip(netDs, optDs, dataset)):
+>>>>>>> ce6913369c004e0bfedfea7e52ffe22f8e7a5c5c
                 
                 # Zero out the gradient
                 netD.zero_grad()
@@ -288,6 +295,7 @@ def train(path_input, pth, imtype, datasets, Disc, Gen, nc, l, nz, n_dims, Norma
                         img = netG(noise)
                         util.test_plotter(img, imtype, pth, n_dims=n_dims, slcs=5)
                     
+<<<<<<< HEAD
                     # Print the estimated time remaining
                     util.calc_eta(len(dataloader[0]), time.time(), time_start, i, epoch, num_epochs)
 
@@ -345,3 +353,17 @@ def save_weights(pth, plane_names, netG, netDs):
     #save Discriminator model weights
     for plane_name, netD in zip(plane_names, netDs):
         torch.save(netD.state_dict(), pth + '_Disc_'+plane_name+'.pt')
+=======
+                    # plotting graphs
+                    if split_graphs:
+                        for disc_loss, Wass, gp, plane_name in zip(disc_loss_log, Wass_log, gp_log, plane_names):
+                            util.graph_plot(disc_loss, ['real', 'perp'],     pth, 'LossGraph'+'_'+plane_name)
+                            util.graph_plot([Wass],    ['Wass Distance'],    pth, 'WassGraph'+'_'+plane_name)
+                            util.graph_plot([gp],      ['Gradient Penalty'], pth, 'GpGraph'  +'_'+plane_name)
+                    else:
+                        util.graph_plot(sum(disc_loss_log,[]), util.permute(plane_names, ['real', 'perp']    ), pth, 'LossGraph')
+                        util.graph_plot(Wass_log,              util.permute(plane_names, ['Wass Distance']   ), pth, 'WassGraph')
+                        util.graph_plot(gp_log,                util.permute(plane_names, ['Gradient Penalty']), pth, 'GpGraph')
+                                        
+                netG.train() #turn on training mode
+>>>>>>> ce6913369c004e0bfedfea7e52ffe22f8e7a5c5c
