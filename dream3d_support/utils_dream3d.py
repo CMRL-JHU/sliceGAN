@@ -46,7 +46,7 @@ def import_resolution(ebsd_paths, name_planes, path_Geometry):
     # If the input contains 1 plane, we're trying to reconstruct a 2D microstructure.
     # No compatibility check is required, and the resolution is given as [x,y,1]
     else:
-        size_voxels = size_voxels+[1]
+        size_voxels = size_voxels[0]+[1]
 
     return size_voxels
     

@@ -119,7 +119,7 @@ def convert_ebsd_to_tiff(dir_path,project_name,ebsd_paths,plane_names,path_dream
     # will not be able to be merged together at the end of the training run.
     # To avoid wasting training time, these merge errors are caught before the run begins
     print("Checking for conflicts in resolution and crystallography...")
-    utils_dream3d.import_resolution(ebsd_paths, plane_names, path_Geometry)
+    resolution = utils_dream3d.import_resolution(ebsd_paths, plane_names, path_Geometry)
     utils_dream3d.check_error_crystallography(ebsd_paths, path_CellEnsembleData, orientations_types)
     print("No conflicts found")
 
