@@ -261,14 +261,12 @@ def insert_attribute_array(
         dataset.attrs["Tuple Axis Dimensions"] = format_string(tuple_axis_dimensions)
         dataset.attrs["TupleDimensions"]       = np.uint64(dims)
         
-def make_xdmf(dream3d_path, padding="   "):
+def make_xdmf(dream3d_path, padding="   ", n_padding=0):
     
     xdmf_path    = dream3d_path.rsplit(".",1)[0]+".xdmf"
     dream3d_name = os.path.split(dream3d_path)[-1]
 
     def insert_datacontainer(datacontainer, dream3d_name, padding, n_padding):
-    
-        name = datacontainer.name.rsplit("/",1)[-1]
     
         def insert_geometry(datacontainer, padding, n_padding):
         
@@ -278,13 +276,18 @@ def make_xdmf(dream3d_path, padding="   "):
             spacing    = " ".join(str(i+0) for i in datacontainer["_SIMPL_GEOMETRY"+"/"+"SPACING"   ][...][::-1])
         
             string = ""
-            string += n_padding*padding+f"<Topology TopologyType=\"3DCoRectMesh\" Dimensions=\"{dimensions}\"></Topology>"+"\n"
-            string += n_padding*padding+"<Geometry Type=\"ORIGIN_DXDYDZ\">"+"\n"
+            string += (0+n_padding)*padding+f"<Topology TopologyType=\"3DCoRectMesh\" Dimensions=\"{dimensions}\">"+"\n"
+            string += (0+n_padding)*padding+"</Topology>"+"\n"
+            string += (0+n_padding)*padding+"<Geometry Type=\"ORIGIN_DXDYDZ\">"+"\n"
             string += (1+n_padding)*padding+"<!-- Origin  Z, Y, X -->"+"\n"
-            string += (1+n_padding)*padding+f"<DataItem Format=\"XML\" Dimensions=\"{n_dims}\">{origin}</DataItem>"+"\n"
+            string += (1+n_padding)*padding+f"<DataItem Format=\"XML\" Dimensions=\"{n_dims}\">"+"\n"
+            string += (2+n_padding)*padding+f"{origin}"+"\n"
+            string += (1+n_padding)*padding+"</DataItem>"+"\n"
             string += (1+n_padding)*padding+"<!-- DxDyDz (Spacing/Resolution) Z, Y, X -->"+"\n"
-            string += (1+n_padding)*padding+f"<DataItem Format=\"XML\" Dimensions=\"{n_dims}\">{spacing}</DataItem>"+"\n"
-            string += n_padding*padding+"</Geometry>"
+            string += (1+n_padding)*padding+f"<DataItem Format=\"XML\" Dimensions=\"{n_dims}\">"+"\n"
+            string += (2+n_padding)*padding+f"{spacing}"+"\n"
+            string += (1+n_padding)*padding+"</DataItem>"+"\n"
+            string += (0+n_padding)*padding+"</Geometry>"
             
             return string
             
@@ -301,17 +304,19 @@ def make_xdmf(dream3d_path, padding="   "):
             precision     = 4 if attributearray.attrs["ObjectType"].decode("utf-8") == "DataArray<float>" else 1
             
             string = ""
-            string += n_padding*padding+f"<Attribute Name=\"{name}\" AttributeType=\"{attributetype}\" Center=\"Cell\">"+"\n"
+            string += (0+n_padding)*padding+f"<Attribute Name=\"{name}\" AttributeType=\"{attributetype}\" Center=\"Cell\">"+"\n"
             string += (1+n_padding)*padding+f"<DataItem Format=\"HDF\" Dimensions=\"{shape}\" NumberType=\"{datatype}\" Precision=\"{precision}\" >"+"\n"
             string += (2+n_padding)*padding+f"{dream3d_name}:{path}"+"\n"
             string += (1+n_padding)*padding+"</DataItem>"+"\n"
-            string += n_padding*padding+"</Attribute>"
+            string += (0+n_padding)*padding+"</Attribute>"
             
             return string
             
+        name_datacontainer = datacontainer.name.rsplit("/",1)[-1]
+            
         string = ""
-        string += n_padding*padding+f"<!-- *************** START OF {name} *************** -->"+"\n"
-        string += n_padding*padding+f"<Grid Name=\"{name}\" GridType=\"Uniform\">"+"\n"
+        string += (0+n_padding)*padding+f"<!-- *************** START OF {name_datacontainer} *************** -->"+"\n"
+        string += (0+n_padding)*padding+f"<Grid Name=\"{name_datacontainer}\" GridType=\"Uniform\">"+"\n"
         
         string += insert_geometry(datacontainer, padding, 1+n_padding)+"\n"
         
@@ -320,27 +325,30 @@ def make_xdmf(dream3d_path, padding="   "):
                 attributematrix_dims = " ".join(str(i) for i in datacontainer[attributematrix].attrs["TupleDimensions"].astype(int))
                 geometry_dims        = " ".join(str(i) for i in datacontainer["_SIMPL_GEOMETRY"+"/"+"DIMENSIONS"][...].astype(int))
                 if attributematrix_dims == geometry_dims:
+                    name_attributematrix = datacontainer[attributematrix].name.rsplit('/',1)[-1]
+                    string += (1+n_padding)*padding+f"<!-- *************** START OF {name_attributematrix} *************** -->"+"\n"
                     for attributearray in datacontainer[attributematrix]:
                         string += insert_attributearray(datacontainer[attributematrix+"/"+attributearray], dream3d_name, padding, 1+n_padding)+"\n"
+                    string += (1+n_padding)*padding+f"<!-- *************** END OF {name_attributematrix} *************** -->"+"\n"
           
-        string += n_padding*padding+"</Grid>"+"\n"
-        string += n_padding*padding+f"<!-- *************** END OF {name} *************** -->"
+        string += (0+n_padding)*padding+"</Grid>"+"\n"
+        string += (0+n_padding)*padding+f"<!-- *************** END OF {name_datacontainer} *************** -->"
     
         return string
     
     with h5py.File(dream3d_path, 'r') as dream3d_file, open(xdmf_path, 'w') as xdmf_file:
     
         string = ""
-        string += "<?xml version=\"1.0\"?>"+"\n"
-        string += "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\"[]>"+"\n"
-        string += "<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2.2\">"+"\n"
-        string += padding+"<Domain>"
+        string += (0+n_padding)*padding+"<?xml version=\"1.0\"?>"+"\n"
+        string += (0+n_padding)*padding+"<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\"[]>"+"\n"
+        string += (0+n_padding)*padding+"<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2.2\">"+"\n"
+        string += (1+n_padding)*padding+padding+"<Domain>"+"\n"
         
         for datacontainer in dream3d_file["DataContainers"]:
             string += insert_datacontainer(dream3d_file["DataContainers"+"/"+datacontainer], dream3d_name, padding, 2)+"\n"
         
-        string += padding+"</Domain>"+"\n"
-        string += "</Xdmf>"
+        string += (1+n_padding)*padding+"</Domain>"+"\n"
+        string += (0+n_padding)*padding+"</Xdmf>"
         
         xdmf_file.write(string)
 
