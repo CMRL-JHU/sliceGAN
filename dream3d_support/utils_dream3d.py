@@ -376,7 +376,13 @@ def replace_json_paths(json_path,input_path=None,output_path=None,image_path=Non
     # Replace input paths
     if input_path is not None:
 
-        for filter_type in ["DataContainerReader", "ReadCtfData"]:
+        inputs_types = {
+            "DataContainerReader": "InputFile",
+            "InputFile"          : "InputFile",
+            "PackPrimaryPhases"  : "FeatureInputFile"
+        }
+
+        for filter_type, input_name in zip([*input_types.keys()],[*input_types.values()]):
 
             filter_ids = get_filter_ids(data, filter_type)
             if len(filter_ids) > 0:
