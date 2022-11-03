@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd"[]>
+<Xdmf xmlns:xi="http://www.w3.org/2003/XInclude" Version="2.2">
+      <Domain>
+      <!-- *************** START OF ImageDataContainer *************** -->
+      <Grid Name="ImageDataContainer" GridType="Uniform">
+         <Topology TopologyType="3DCoRectMesh" Dimensions="129 128 128">
+         </Topology>
+         <Geometry Type="ORIGIN_DXDYDZ">
+            <!-- Origin  Z, Y, X -->
+            <DataItem Format="XML" Dimensions="3">
+               0 0 0
+            </DataItem>
+            <!-- DxDyDz (Spacing/Resolution) Z, Y, X -->
+            <DataItem Format="XML" Dimensions="3">
+               0.5 0.5 0.5
+            </DataItem>
+         </Geometry>
+         <!-- *************** START OF CellData *************** -->
+         <Attribute Name="Error" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="UChar" Precision="1" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/Error
+            </DataItem>
+         </Attribute>
+         <Attribute Name="Error_Mask" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="UChar" Precision="1" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/Error_Mask
+            </DataItem>
+         </Attribute>
+         <Attribute Name="EulerAngles" AttributeType="Vector" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 3" NumberType="Float" Precision="4" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/EulerAngles
+            </DataItem>
+         </Attribute>
+         <Attribute Name="IPFColor" AttributeType="Vector" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 3" NumberType="UChar" Precision="1" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/IPFColor
+            </DataItem>
+         </Attribute>
+         <Attribute Name="Phases" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="Int" Precision="1" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/Phases
+            </DataItem>
+         </Attribute>
+         <Attribute Name="Quats" AttributeType="Vector" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 4" NumberType="Float" Precision="4" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/Quats
+            </DataItem>
+         </Attribute>
+         <Attribute Name="QuatsComponent0" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="Float" Precision="4" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/QuatsComponent0
+            </DataItem>
+         </Attribute>
+         <Attribute Name="QuatsComponent1" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="Float" Precision="4" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/QuatsComponent1
+            </DataItem>
+         </Attribute>
+         <Attribute Name="QuatsComponent2" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="Float" Precision="4" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/QuatsComponent2
+            </DataItem>
+         </Attribute>
+         <Attribute Name="QuatsComponent3" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="Float" Precision="4" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/QuatsComponent3
+            </DataItem>
+         </Attribute>
+         <Attribute Name="QuatsSum" AttributeType="Scalar" Center="Cell">
+            <DataItem Format="HDF" Dimensions="128 127 127 1" NumberType="Float" Precision="4" >
+               2-slicegan_data.2021-10-12.dream3d:/DataContainers/ImageDataContainer/CellData/QuatsSum
+            </DataItem>
+         </Attribute>
+         <!-- *************** END OF CellData *************** -->
+      </Grid>
+      <!-- *************** END OF ImageDataContainer *************** -->
+   </Domain>
+</Xdmf>
