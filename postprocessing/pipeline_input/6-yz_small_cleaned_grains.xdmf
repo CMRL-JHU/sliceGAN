@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd"[]>
+<Xdmf xmlns:xi="http://www.w3.org/2003/XInclude" Version="2.2">
+ <Domain>
+  <!-- *************** START OF ImageDataContainer *************** -->
+  <Grid Name="ImageDataContainer" GridType="Uniform">
+    <Topology TopologyType="3DCoRectMesh" Dimensions="2 302 302 "></Topology>
+    <Geometry Type="ORIGIN_DXDYDZ">
+      <!-- Origin  Z, Y, X -->
+      <DataItem Format="XML" Dimensions="3">0 0 0</DataItem>
+      <!-- DxDyDz (Spacing/Resolution) Z, Y, X -->
+      <DataItem Format="XML" Dimensions="3">1 0.166 0.166</DataItem>
+    </Geometry>
+    <Attribute Name="BC" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Int" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/BC
+      </DataItem>
+    </Attribute>
+    <Attribute Name="BS" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Int" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/BS
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Bands" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Int" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Bands
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Error" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Int" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Error
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Error_Mask" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="uchar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Error_Mask
+      </DataItem>
+    </Attribute>
+    <Attribute Name="EulerAngles" AttributeType="Vector" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 3" NumberType="Float" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/EulerAngles
+      </DataItem>
+    </Attribute>
+    <Attribute Name="FeatureAvgEulerAngles" AttributeType="Vector" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 3" NumberType="Float" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/FeatureAvgEulerAngles
+      </DataItem>
+    </Attribute>
+    <Attribute Name="FeatureIPFColor" AttributeType="Vector" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 3" NumberType="UChar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/FeatureIPFColor
+      </DataItem>
+    </Attribute>
+    <Attribute Name="FeatureIPFColorImage" AttributeType="Vector" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 3" NumberType="UChar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/FeatureIPFColorImage
+      </DataItem>
+    </Attribute>
+    <Attribute Name="FeatureIds" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Int" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/FeatureIds
+      </DataItem>
+    </Attribute>
+    <Attribute Name="FeatureVolumes" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Float" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/FeatureVolumes
+      </DataItem>
+    </Attribute>
+    <Attribute Name="IPFColor" AttributeType="Vector" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 3" NumberType="UChar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/IPFColor
+      </DataItem>
+    </Attribute>
+    <Attribute Name="KernelAverageMisorientations" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Float" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/KernelAverageMisorientations
+      </DataItem>
+    </Attribute>
+    <Attribute Name="MAD" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Float" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/MAD
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Mask_Clear" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="uchar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Mask_Clear
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Mask_Clear_Image" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="UChar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Mask_Clear_Image
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Mask_Clear_Jet" AttributeType="Vector" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 3" NumberType="UChar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Mask_Clear_Jet
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Mask_Particle_Domain" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="uchar" Precision="1" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Mask_Particle_Domain
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Phases" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Int" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Phases
+      </DataItem>
+    </Attribute>
+    <Attribute Name="X" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Float" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/X
+      </DataItem>
+    </Attribute>
+    <Attribute Name="Y" AttributeType="Scalar" Center="Cell">
+      <DataItem Format="HDF" Dimensions="1 301 301 1" NumberType="Float" Precision="4" >
+        6-yz_small_cleaned_grains.dream3d:/DataContainers/ImageDataContainer/CellData/Y
+      </DataItem>
+    </Attribute>
+  </Grid>
+  <!-- *************** END OF ImageDataContainer *************** -->
+ </Domain>
+</Xdmf>
