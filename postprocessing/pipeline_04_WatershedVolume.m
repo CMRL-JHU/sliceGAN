@@ -1,72 +1,94 @@
 clear all;clc
 
-%vars
+%%% vars
 path_file_input   = "./pipeline_output/3-denoised.dream3d";
 path_file_output  = "./pipeline_output/4-watershed.dream3d";
 path_celldata     = "/DataContainers/ImageDataContainer/CellData";
 name_errormask    = "Error_Mask";
 name_orientations = "EulerAngles";
-sigma = 2.5; %for gaussian blur
+gradient_threshold = 0;
+contrast = 64;
+sigma = 2; %for gaussian blur
 tolerance = 0.10; %for re-inserting zero data %as a percentage
 
-
+%%% create the output file
 if ~exist(fileparts(path_file_output), 'dir')
     mkdir(fileparts(path_file_output))
 end
 copyfile(path_file_input, path_file_output)
 
-%%%import arrays
-%get eulerangles from dream3d file
+%%% import arrays
+% get eulerangles from dream3d file
 orientations = read_dream3d_dataset(path_file_output,path_celldata,name_orientations);
 %get the error mask from the dream3d file
 mask =  read_dream3d_dataset(path_file_output,path_celldata,name_errormask);
 
-%%%format arrays
-%convert data format [0,2*pi] -> [0,255]
-orientations = radians_to_colors(orientations);
-%extract just one euler angle
-A = orientations(:,:,:,1);
-
-%%%find the (inverse) image gradient
-%find the image gradient
-A_grad = gradientweight(A);
+%%% find the (inverse) image gradient
+% find the image gradient
+gradient = zeros(size(orientations(:,:,:,1)));
+for component = 1:size(orientations,4)
+    gradient_i = imgradient3( orientations(:,:,:,component) );
+    gradient_i = normalize_0_1( gradient_i );
+    gradient_i(gradient_i < gradient_threshold) = 0;
+    gradient = gradient + gradient_i;
+end
+% normalize the gradient
+gradient = normalize_0_1( gradient );
 % remove the error mask data from the gradient
-A_grad(mask==0) = 0;
-%plot_volume(A_grad, "Image Gradient "+name_dataset);
-create_dataset(path_file_output, path_celldata, 'Gradient', cast(A_grad,    'single'))
+% we set to 1 so it acts as a hard boundary to the watershed
+gradient(mask==0) = 1;
+%plot_volume(gradient, "Gradient "+name_dataset);
+create_dataset(path_file_output, path_celldata, 'Gradient', cast(gradient, 'single'))
 
-%%%perform gaussian blur on the image gradient to smooth out local noise
-A_smooth = imgaussfilt3(A_grad, sigma);
-%plot_volume(A_smooth, "Gauss Filtered "+name_dataset);
-create_dataset(path_file_output, path_celldata, 'GaussFilter', cast(A_smooth,    'single'))
+
+%%% contrast the gradient
+gradient_contrast = histeq(gradient, contrast);
+%plot_volume(gradient_contrast, "Gradient Contrast "+name_dataset);
+create_dataset(path_file_output, path_celldata, 'GradientContrast', cast(gradient_contrast, 'single'))
+
+% %%% erode/dilate the gradient
+% se = strel("cube",3);
+% gradient_erode_dilate = imclose(gradient_contrast,se);
+% %plot_volume(gradient_erode_dilate, "Gradient Erode/Dilate "+name_dataset);
+% create_dataset(path_file_output, path_celldata, 'GradientErodeDilate', cast(gradient_erode_dilate, 'single'))
+
+%%% perform gaussian blur on the image gradient to smooth out local noise
+gradient_gauss = imgaussfilt3(gradient_contrast, sigma);
+%plot_volume(gradient_gauss, "Gradient Gauss "+name_dataset);
+create_dataset(path_file_output, path_celldata, 'GradientGauss', cast(gradient_gauss,    'single'))
 
 %invert smoothed eulerangles
 %%%minima likely correspond to grain boundaries
 %%%maxima likely correspond to grain centers
 %%%watershed nucleates from minima
-%watershed the inverted data
-B = cast(watershed(255-A_smooth),'single');
+%watershed the inverted, smoothed gradient
+basins = cast( watershed( gradient_gauss ),'single' );
 %re-introduce void spaces
-B(mask==0) = 0;
-%plot_volume(B, "Watershed Basins of "+name_dataset);
-create_dataset(path_file_output, path_celldata, 'WatershedBasins', cast(B, 'int32'))
+basins(mask==0) = 0;
+%plot_volume(basins, "Watershed Basins of "+name_dataset);
+create_dataset(path_file_output, path_celldata, 'WatershedBasins', cast(basins, 'int32'))
 
 %find the average euler angles corresponding to the watershed basins
-n_grains = max(B,[],'all');
-sigma = ones(size(orientations));
-mu    = ones(size(orientations));
-for id_grain = 1:n_grains
+n_basins = max(basins,[],'all');
+sigma = zeros(size(orientations));
+mu    = zeros(size(orientations));
+for id_basin = 1:n_basins
     for component = 1:size(orientations,4)
         indecies = false(size(orientations));
-        indecies(:,:,:,component) = (B == id_grain);
+        indecies(:,:,:,component) = (basins == id_basin);
         mu   (indecies) = mean(orientations(indecies));
         sigma(indecies) = std (orientations(indecies));
     end
 end
 %plot_volume(mu, "mu")
 %plot_volume(sigma, "sigma")
-create_dataset(path_file_output, path_celldata, 'WatershedBasinMean'             , cast(colors_to_radians(mu     ), 'single'))
-create_dataset(path_file_output, path_celldata, 'WatershedBasinStandardDeviation', cast(colors_to_radians(sigma  ), 'single'))
+create_dataset(path_file_output, path_celldata, 'WatershedBasinMean'             , cast(mu   , 'single'))
+create_dataset(path_file_output, path_celldata, 'WatershedBasinStandardDeviation', cast(sigma, 'single'))
+
+function result = normalize_0_1(matrix)
+    result = matrix - min(matrix(:));
+    result = result ./ max(result(:));
+end
 
 function dataset = read_dream3d_dataset(path_file,path_group,name_dataset)
     dataset = h5read(path_file,path_group+"/"+name_dataset);

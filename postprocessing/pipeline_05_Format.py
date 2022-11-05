@@ -12,6 +12,10 @@ whitelist = [
     "EulerAngles"                    ,
     "Phases"                         ,
     "Error_Mask"                     ,
+    "Gradient"                       ,
+    "GradientContrast"               ,
+    "GradientErodeDilate"            ,
+    "GradientGauss"                  ,
     "WatershedBasinMean"             ,
     "WatershedBasinStandardDeviation",
     "WatershedBasins"
