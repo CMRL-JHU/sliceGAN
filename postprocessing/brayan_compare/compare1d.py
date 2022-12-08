@@ -3,7 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
     
 def plot_comparison(files, path_data, OutName, nbBins, labels, xLabel, yLabel):
-
+    
+    size_figure = [6.4, 4.8]
+    dpi = 150
+    
     sourceData = []
     DataY=[]
 
@@ -76,7 +79,9 @@ def plot_comparison(files, path_data, OutName, nbBins, labels, xLabel, yLabel):
 
     plt.clf()
     width = (rangeSize/len(DataY))*0.9
-    fig= plt.figure() #(figsize=(12,8), dpi=150)
+    #fig= plt.figure() #(figsize=(12,8), dpi=150)
+    fig = plt.figure(figsize=size_figure, dpi=dpi)
+    
     plt.grid(b=True, linestyle=':', linewidth=1)
     axes = plt.gca()
     plt.xlabel(xLabel, fontsize=18)
@@ -89,7 +94,8 @@ def plot_comparison(files, path_data, OutName, nbBins, labels, xLabel, yLabel):
     plt.subplots_adjust(bottom=0.13, right=0.95, top=0.95)
     plt.tight_layout()
     plt.savefig(OutName+".pdf", format='pdf')
-    plt.savefig(OutName+".png", format='png', transparent=True)
+    plt.savefig(OutName+".png", format='png')
+    plt.savefig(OutName+"_transparent.png", format='png', transparent=True)
     plt.close()
 
 

@@ -44,7 +44,7 @@ labels = [
     "SliceGAN",
     "EBSD"
     ]
-xLabel = "Disorientation [$^{\circ}$]"
+xLabel = "Misorientation Angle [$^{\circ}$]"
 yLabel = "Fraction [$\%$]"
 compare1d.plot_comparison(files, path_data, OutName, nbBins, labels, xLabel, yLabel)
 

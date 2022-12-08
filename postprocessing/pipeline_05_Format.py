@@ -14,9 +14,9 @@ whitelist = [
     "Error_Mask"                     ,
     "Gradient"                       ,
     "GradientContrast"               ,
-    "GradientErodeDilate"            ,
     "GradientGauss"                  ,
     "WatershedBasinMean"             ,
+    "WatershedBasinMeanDifference"   ,
     "WatershedBasinStandardDeviation",
     "WatershedBasins"
 ]

@@ -70,19 +70,22 @@ create_dataset(path_file_output, path_celldata, 'WatershedBasins', cast(basins, 
 
 %find the average euler angles corresponding to the watershed basins
 n_basins = max(basins,[],'all');
-sigma = zeros(size(orientations));
 mu    = zeros(size(orientations));
+sigma = zeros(size(orientations));
+delta = zeros(size(orientations));
 for id_basin = 1:n_basins
     for component = 1:size(orientations,4)
         indecies = false(size(orientations));
         indecies(:,:,:,component) = (basins == id_basin);
-        mu   (indecies) = mean(orientations(indecies));
-        sigma(indecies) = std (orientations(indecies));
+        mu   (indecies) = mean( orientations(indecies) );
+        delta(indecies) = abs ( mu(indecies) - orientations(indecies) );
+        sigma(indecies) = std ( orientations(indecies) );
     end
 end
 %plot_volume(mu, "mu")
 %plot_volume(sigma, "sigma")
 create_dataset(path_file_output, path_celldata, 'WatershedBasinMean'             , cast(mu   , 'single'))
+create_dataset(path_file_output, path_celldata, 'WatershedBasinMeanDifference'   , cast(delta, 'single'))
 create_dataset(path_file_output, path_celldata, 'WatershedBasinStandardDeviation', cast(sigma, 'single'))
 
 function result = normalize_0_1(matrix)
@@ -185,9 +188,6 @@ function attribute_details = create_attribute_details(name, path, type)
 end
 
 function create_dataset(path_file, group, name, data)
-
-    % BUG!
-    %     currently writing all data types as 64 bit floats?!
     
     % create path to new dataset
     path_dataset = group+"/"+name;
