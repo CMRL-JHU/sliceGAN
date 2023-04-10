@@ -84,13 +84,15 @@ def plot_comparison(files, path_data, OutName, nbBins, labels, xLabel, yLabel):
     
     plt.grid(b=True, linestyle=':', linewidth=1)
     axes = plt.gca()
-    plt.xlabel(xLabel, fontsize=18)
-    plt.ylabel(yLabel, fontsize=18)
+    plt.xlabel(xLabel, fontsize=20)
+    plt.ylabel(yLabel, fontsize=20)
     #plt.title(r"$"+'t='+str(step*timeStepPlot+initialTimePlot)+"$", fontsize=24)
     for ifn in range(0, len(DataY)):
         plt.bar(ranges[:-1]+width*ifn, Distributions[ifn], width = width, label=labels[ifn]) #color=colorList[ifn],
-    plt.legend(prop={'size': 24})
-    plt.tick_params(axis = 'both', which = 'major', labelsize = 15) # Make bigger the tick of the axes (both X and Y)
+    plt.legend(prop={'size': 20})
+    axes.xaxis.get_offset_text().set_fontsize(20)
+    axes.yaxis.get_offset_text().set_fontsize(20)
+    plt.tick_params(axis = 'both', which = 'major', labelsize = 20) # Make bigger the tick of the axes (both X and Y)
     plt.subplots_adjust(bottom=0.13, right=0.95, top=0.95)
     plt.tight_layout()
     plt.savefig(OutName+".pdf", format='pdf')
