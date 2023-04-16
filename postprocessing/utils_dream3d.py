@@ -21,6 +21,29 @@ def make_mask_sphere(dims, center=None, radius=None, origin=[0,0,0]):
     
     return r
     
+#make a hyperellipsoidal mask in a volume
+def make_mask_hyperellipsoid(dims, center=None, rotation_matrix=None, diameters=[1,1,1], exponent=2, origin=[0,0,0]):
+    
+    if center is None:
+        center = [.5*dim for dim in dims]
+    if rotation_matrix is None:
+        rotation_matrix = np.eye(3)
+    
+    x  = np.asarray(np.mgrid[[range(dim) for dim in dims]]) 
+    x0 = np.broadcast_to( np.asarray(center).reshape(3,1,1,1), [3]+list(dims) )
+    coordinates = np.einsum('ab,bijk', rotation_matrix, x-x0)
+        
+    r = np.sqrt( sum( [ (x/d)**exponent for x, d in zip(coordinates, diameters) ] ) )
+    
+    r[r > 1] = 0
+    r[r > 0] = 1
+    
+    dtype = "DataArray<bool>"
+    r = r.reshape(dims+[1])
+    r = r.astype(get_datatype(dtype))
+    
+    return r
+    
 #make a cubic mask in a volume
 def make_mask_cube(dims_outer, center=None, dims_inner=None):
     
@@ -442,7 +465,7 @@ def make_xdmf(dream3d_path, padding="   ", n_padding=0):
             except AttributeError: # hacky workaround for matlab string attributes
                 datatype  = datatypes_xdmf[datatypes_dream3d.index(attributearray.attrs["ObjectType"][0].decode("utf-8"))]
                 precision = 4 if attributearray.attrs["ObjectType"][0].decode("utf-8") == "DataArray<float>" else 1
-                
+            
             string = ""
             string += (0+n_padding)*padding+f"<Attribute Name=\"{name}\" AttributeType=\"{attributetype}\" Center=\"Cell\">"+"\n"
             string += (1+n_padding)*padding+f"<DataItem Format=\"HDF\" Dimensions=\"{shape}\" NumberType=\"{datatype}\" Precision=\"{precision}\" >"+"\n"
@@ -1021,7 +1044,7 @@ def crop(path_input, path_output, points):
                         # such that they can be used to reference cellfeaturedata dataarrays
                         # create the new values, but DON'T start at zero unless it already exists in features_old
                         # this is because 0 has a special significance as an error value throughout dream.3d
-                        features_new = np.arange((1,0)[0 in data],features_old.size)
+                        features_new = np.arange(0, features_old.size)+(1,0)[0 in data]
                         # cycle through each old and new value as they're already sorted and of the same size
                         # replace any value of data that matches the old value and replace it with the new value
                         for feature_old, feature_new in zip(features_old, features_new): data[data==feature_old]=feature_new
@@ -1036,6 +1059,14 @@ def crop(path_input, path_output, points):
                         type_data     ,
                         "Cell"
                     )
+
+                    ### DEBUG ####
+                    # test that the proposed and assigned featureids align
+                    if path_celldata+"/"+name_dataarray in [key for key in map_featureids_cellfeaturedata.keys()]:
+                        with h5py.File(path_output, 'r') as f:
+                            features_actual = np.unique(f[f"{path_celldata}/{name_dataarray}"][...])
+                        if not all(features_new == features_actual):
+                            raise ValueError("feature ids do not align")
                     
             # export CellFeatureData group(s)
             for path_featureids, paths_cellfeaturedata in zip(map_featureids_cellfeaturedata.keys(), map_featureids_cellfeaturedata.values()):
