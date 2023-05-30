@@ -376,7 +376,7 @@ def replace_json_paths(json_path,input_path=None,output_path=None,image_path=Non
     # Replace input paths
     if input_path is not None:
 
-        inputs_types = {
+        input_types = {
             "DataContainerReader": "InputFile",
             "InputFile"          : "InputFile",
             "PackPrimaryPhases"  : "FeatureInputFile"

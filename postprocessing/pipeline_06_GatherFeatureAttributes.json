@@ -5,7 +5,7 @@
         "Filter_Human_Label": "Read DREAM.3D Data File",
         "Filter_Name": "DataContainerReader",
         "Filter_Uuid": "{043cbde5-3878-5718-958f-ae75714df0df}",
-        "InputFile": "C:\\Users\\nirahve\\Downloads\\school\\research\\generate_serve\\SliceGAN\\postprocessing\\pipeline_output\\5-watershed.dream3d",
+        "InputFile": "/home/nirahve/school/research/slicegan/postprocessing/pipeline_output/5-watershed.dream3d",
         "InputFileDataContainerArrayProxy": {
             "Data Containers": [
                 {
@@ -216,8 +216,7 @@
         "Filter_Human_Label": "Erode/Dilate Bad Data",
         "Filter_Name": "ErodeDilateBadData",
         "Filter_Uuid": "{3adfe077-c3c9-5cd0-ad74-cf5f8ff3d254}",
-        "IgnoredDataArrayPaths": [
-        ],
+        "IgnoredDataArrayPaths": [],
         "NumIterations": 1,
         "XDirOn": 1,
         "YDirOn": 1,
@@ -239,8 +238,7 @@
         "Filter_Human_Label": "Fill Bad Data",
         "Filter_Name": "FillBadData",
         "Filter_Uuid": "{30ae0a1e-3d94-5dab-b279-c5727ab5d7ff}",
-        "IgnoredDataArrayPaths": [
-        ],
+        "IgnoredDataArrayPaths": [],
         "MinAllowedDefectSize": 100,
         "StoreAsNewPhase": 0
     },
@@ -256,8 +254,7 @@
         "Filter_Human_Label": "Erode/Dilate Bad Data",
         "Filter_Name": "ErodeDilateBadData",
         "Filter_Uuid": "{3adfe077-c3c9-5cd0-ad74-cf5f8ff3d254}",
-        "IgnoredDataArrayPaths": [
-        ],
+        "IgnoredDataArrayPaths": [],
         "NumIterations": 1,
         "XDirOn": 1,
         "YDirOn": 1,
@@ -605,7 +602,7 @@
             "Data Container Name": "ImageDataContainer"
         },
         "NumColors": 32,
-        "OutputPath": "C:/Users/nirahve/Downloads/school/research/generate_serve/SliceGAN/postprocessing/pipeline_output",
+        "OutputPath": "/home/nirahve/school/research/slicegan/postprocessing/pipeline_output",
         "Title": "Synthetic",
         "UseGoodVoxels": 1
     },
@@ -615,7 +612,7 @@
         "Filter_Human_Label": "Write DREAM.3D Data File",
         "Filter_Name": "DataContainerWriter",
         "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
-        "OutputFile": "C:/Users/nirahve/Downloads/school/research/generate_serve/SliceGAN/postprocessing/pipeline_output/6-feature_attributes.dream3d",
+        "OutputFile": "/home/nirahve/school/research/slicegan/postprocessing/pipeline_output/6-feature_attributes.dream3d",
         "WriteTimeSeries": 0,
         "WriteXdmfFile": 1
     },
