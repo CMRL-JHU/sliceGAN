@@ -82,7 +82,7 @@ def check_error_crystallography(ebsd_paths, path_CellEnsembleData, orientations_
         # Close all the ebsd files
         [file.close() for file in ebsd_files]
             
-        if result:
+        if not result:
             raise RuntimeError("Crystallography data does not match between all 3 planes. No way to link crystallography")
             
 #returns true if the value is a crystallographic data type
@@ -505,48 +505,44 @@ def lists_are_equal(lists):
 
 #determine if multiple hdf5 groups are equal
 def groups_are_equal(items):
-    attributes = []
-    isdataset  = []
-    for item in items:
-        attributes.append(item.attrs)
-        isdataset .append(isinstance(item, h5py.Dataset))
+
+    #check names
+    if not lists_are_equal( [item.name for item in items] ):
+        print("names unequal")
+        return False
+
     #check attributes
-    if not lists_are_equal(attributes):
+    if not lists_are_equal( [{**item.attrs} for item in items] ):
         print("attributes unequal")
         return False
-    #check dataset values
+    
+    # we've already checked the names and attributes, now to check
+    # if it's a group or a dataset
+    isdataset  = [ isinstance(item, h5py.Dataset) for item in items ]
+    
+    #check dataset contents
     if all(isdataset):
-        data = []
-        for item in items:
-            data.append(item[()]) #must be [()] for multi-dimensional instead of [:]
-        if not lists_are_equal(data):
-            print("datasets unequal")
-            for i in data:
-                print(i)
+        if not lists_are_equal( [item[()] for item in items] ):
+            print("dataset contents unequal")
             return False
         return True
+
     #check for mismatched types
-    elif any(isdataset):
-        print("dataset types unequal")
+    if any(isdataset):
+        print("dataset/group types unequal")
         return False
-    #must be a group
-    keys = []
-    for item in items:
-        keys.append(item.keys())
-    #check that the keys are equal
+    
+    #must be a group, now check the subgroups
+    keys = [ item.keys() for item in items ]
+
+    #check group contents
     if not lists_are_equal(keys):
-        print("keys unequal")
+        print("group contents unequal")
         return False
-    #check for empty group
-    if len(keys) == 0:
-        return True
-    #keys must be equal, grab the first set
-    keys = keys[0]
+    
     #check subgroups recursively
-    isequal = []
-    for key in keys:
-        sub_items = []
-        for item in items:
-            sub_items.append(item[key])
-        isequal.append(groups_are_equal(sub_items))
-    return all(isequal)
+    for key in keys[0]:
+        if not groups_are_equal( [item[key] for item in items] ):
+            print('group contents unequal')
+            return False
+    return True

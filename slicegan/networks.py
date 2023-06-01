@@ -85,7 +85,7 @@ def slicegan_nets(path_input, imtype, img_size, img_channels, z_channels, n_dims
         def forward(self, x):
             x = self.sequential(x)
             if imtype in ['grayscale', 'colour']:
-                #normalize to [0,1]
+                #normalize from [-1,1] to [0,1]
                 x = (x+1)/2
             return x
         def __str__(self):

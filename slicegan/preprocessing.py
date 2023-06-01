@@ -7,7 +7,7 @@ new_path = os.path.dirname(__file__)
 if new_path not in sys.path:
     sys.path.append(new_path)
 import util
-def batch(data, data_type, l, sf, Normalize=True, Testing=False):
+def batch(data, data_type, batch_size, l, sf, Normalize=True, Testing=False):
     #l is sample image size
     #data is the path to the image file
 
@@ -37,8 +37,8 @@ def batch(data, data_type, l, sf, Normalize=True, Testing=False):
             img = img[::sf,::sf]
             x_max, y_max= img.shape[:]
             phases = np.unique(img)
-            data = np.empty([32 * 900, len(phases), l, l])
-            for i in range(32 * 900):
+            data = np.empty([batch_size, len(phases), l, l])
+            for i in range(batch_size):
                 x = np.random.randint(1, x_max - l-1)
                 y = np.random.randint(1, y_max - l-1)
                 # create one channel per phase for one hot encoding
@@ -71,9 +71,9 @@ def batch(data, data_type, l, sf, Normalize=True, Testing=False):
         print('training image shape: ', img.shape)
         vals = np.unique(img)
         for dim in range(3):
-            data = np.empty([32 * 900, len(vals), l, l])
+            data = np.empty([batch_size, len(vals), l, l])
             print('dataset ', dim)
-            for i in range(32*900):
+            for i in range(batch_size):
                 # string = (
                 # "z_max = "+str(z_max)+"\n"+
                 # "l = "+str(l)+"\n"
@@ -119,12 +119,11 @@ def batch(data, data_type, l, sf, Normalize=True, Testing=False):
             if Normalize:
                 img = img[:]/255
             img = img[::sf,::sf,:] #determines the order (negatives reverse order) and stride (1=skip none, 2=skip one, etc...)
-            ep_sz = 32 * 900 #batch size ??? 32 bit color depth maybe, but 900 ???
             #image data comes in [x,y,n_channels] where channels can be [r,b,g]=3, [r,b,g,alpha]=4
             #so this list is size: [???, n_channels, x_max, y_max]
-            data = np.empty([ep_sz, list(img.shape)[2], l, l])
+            data = np.empty([batch_size, list(img.shape)[2], l, l])
             x_max, y_max = img.shape[:2]
-            for i in range(ep_sz):
+            for i in range(batch_size):
                 x = np.random.randint(0, x_max - l)
                 y = np.random.randint(0, y_max - l)
                 # create one channel per phase for one hot encoding
@@ -157,8 +156,8 @@ def batch(data, data_type, l, sf, Normalize=True, Testing=False):
             img = img/img.max()
             img = img[::sf, ::sf]
             x_max, y_max = img.shape[:]
-            data = np.empty([32 * 900, 1, l, l])
-            for i in range(32 * 900):
+            data = np.empty([batch_size, 1, l, l])
+            for i in range(batch_size):
                 x = np.random.randint(1, x_max - l - 1)
                 y = np.random.randint(1, y_max - l - 1)
                 subim = img[x:x + l, y:y + l]
@@ -188,12 +187,11 @@ def batch(data, data_type, l, sf, Normalize=True, Testing=False):
             if Normalize:
                 img = img[:]/255
             img = img[::sf,::sf,:] #determines the order (negatives reverse order) and stride (1=skip none, 2=skip one, etc...)
-            ep_sz = 32 * 900 #batch size ??? 32 bit color depth maybe, but 900 ???
             #image data comes in [x,y,n_channels] where channels can be [r,b,g]=3, [r,b,g,alpha]=4
             #so this list is size: [???, n_channels, x_max, y_max]
-            data = np.empty([ep_sz, list(img.shape)[2], l, l])
+            data = np.empty([batch_size, list(img.shape)[2], l, l])
             x_max, y_max = img.shape[:2]
-            for i in range(ep_sz):
+            for i in range(batch_size):
                 x = np.random.randint(0, x_max - l)
                 y = np.random.randint(0, y_max - l)
                 # create one channel per phase for one hot encoding

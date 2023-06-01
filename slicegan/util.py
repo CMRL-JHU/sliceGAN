@@ -303,7 +303,7 @@ def find_min_input_size_deconvolution(k,s,p,name,size_current,silent=False):
         size_current=size_next
     if not(size_next%1 == 0):
         if silent:
-    	    return False
+            return False
         else:
             raise ValueError("Malformed kernel size or stride caused non-integer value for %(name)s. Cannot resolve." %{"name":name})
     return int(size_next)
@@ -353,8 +353,8 @@ def pause_for(s):
 def import_text_file(path_text, delineator="\t"):
     with open(path_text) as file_input:
         shape, string_input = file_input.read().split("\n", 1)
-    shape         = extract_numbers(shape        ,delineator=delineator, value_type=int).tolist()[0]
-    numbers_input = extract_numbers(string_input,delineator=delineator)
+    shape         = extract_numbers(shape       , delineator=delineator, value_type=int).tolist()[0]
+    numbers_input = extract_numbers(string_input, delineator=delineator)
     return shape, numbers_input
     
 def extract_numbers(string, delineator="\t", value_type=float):

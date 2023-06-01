@@ -39,6 +39,8 @@ image_type         = data["image_type"        ]
 data_type          = data["data_type"         ]
 # Path to your data. One string for isotrpic, 3 for anisotropic
 data_path          = data["data_path"         ]
+# number of images to sample from the orthogonal images for training
+batch_size         = data["batch_size"        ]
 # Normalize data from color [0,255] to [0,1]
 Normalize          = data["Normalize"         ]
 # Scale factor vs raw data
@@ -150,7 +152,7 @@ if Dream3d_Support and Training:
 # Train
 if Training:
     print('Loading Dataset...')
-    datasets = preprocessing.batch(data_path, data_type, img_size, scale_factor, Normalize)
+    datasets = preprocessing.batch(data_path, data_type, batch_size, img_size, scale_factor, Normalize)
     model.train(path_input, Project_path, image_type, datasets, netD, netG, img_channels, img_size, z_channels, n_dims)
 
 # Generate
