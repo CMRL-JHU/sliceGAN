@@ -20,5 +20,5 @@ pip-3 install --user matplotlib tifffile h5py
 pip-3 install --user torch==1.9.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 ### Run SliceGAN
-python3.6 -u ./run_slicegan.py 1 && python3.6 -u ./run_slicegan.py 0
+python3.6 -u ./run_slicegan.py 1 --inp inputs_3d_mask.json && python3.6 -u ./run_slicegan.py 0 --inp inputs_3d_mask.json
 

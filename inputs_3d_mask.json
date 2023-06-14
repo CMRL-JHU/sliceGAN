@@ -5,10 +5,11 @@
 		"image_type"        : "grayscale",
 		"data_type"         : "text",
 		"data_path"         : [],
+		"batch_size"        : 512,
 		"Normalize"         : true,
 		"n_dims"            : 3,
 		"img_size"          : 64,
-		"img_channels"      : 4,
+		"img_channels"      : 1,
 		"scale_factor"      : 1,
 		"z_channels"        : 16,
 		"Dream3d_Support"   : true,
@@ -24,7 +25,7 @@
 		"lf"                : 6
 	},
 	"model":{
-		"num_epochs"  : 20,
+		"num_epochs"  : 1000,
 		"critic_iters": 5,
 		"batch_size"  : 16,
 		"ngpu"        : 1,
