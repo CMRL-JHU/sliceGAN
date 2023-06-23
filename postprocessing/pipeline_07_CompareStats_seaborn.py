@@ -4,7 +4,22 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-output_path = "pipeline_output/07-compare_statistics.png"
+
+output_path = "pipeline_output/07-compare_statistics.pdf"
+
+save         = True
+fontsize     = 20
+figsize      = [6.4, 4.8]
+dpi          = 200
+rotate_ticks = False
+margin_shift_fraction = {
+    'left'  : 0.20,
+    'right' : 0.05,
+    'top'   : 0.15,
+    'bottom': 0.15
+}
+margin_axis_multiplier = -0.5
+stat         = 'percent'
 
 data = {
     "statistics":{
@@ -90,29 +105,13 @@ data = {
         }
     }
 }
-
-save         = True
-figsize      = [6.4, 4.8]
-dpi          = 200
-rotate_ticks = False
-scaling      = 'percent'
-margin_shift_fraction = {
-    'left'  : 0.20,
-    'right' : 0.05,
-    'top'   : 0.15,
-    'bottom': 0.15
-}
-margin_axis_multiplier = -0.5
-fontsize = 20
     
 def plot_histogram(
         data,
-        labels,
-        xlabels,
         xlim=None,
         ylim=None,
-        scaling='percent',
         n_bins=40,
+        stat='percent',
         fontsize=20,
         figsize=[6.4, 4.8],
         rotate_ticks=False,
@@ -124,18 +123,17 @@ def plot_histogram(
         },
         margin_axis_multiplier=-0.5
     ):
-        
-    scaling_factor_map = {
-        'probability': 1,
-        'percent'    : 100
-    }
-    scaling_name_map = {
-        'probability': 'Fraction',
-        'percent'    : 'Fraction [%]'
+
+    map_stat = {
+        'percent'    : 'Fraction [%]', # heights sum to 100
+        'probability': 'Fraction'    , # heights sum to 1
+        'density'    : 'Density'     , # areas sum to 1
+        'count'      : 'Count'       , # count
+        'frequency'  : 'Frequency'     # count/bin_width
     }
 
     # set up subplots (1 x n_titles)
-    n_components    = len(xlabels)
+    n_components    = len(data.name_component.unique())
     figsize_current = (figsize[0]*n_components, figsize[1]  )
     fig, axes       = plt.subplots(
         ncols   =  n_components  ,
@@ -144,46 +142,55 @@ def plot_histogram(
     )
     axes = np.array(axes).reshape((n_components,))
     
-    for col, (axis, data_axis, xlabel) in enumerate(zip(axes, data, xlabels)):
+    for col, (axis, name_component) in enumerate(zip(axes, data.name_component.unique())):
+        
+        data_component = data[data.name_component==name_component]
 
         # set x limits
         if xlim is None: 
             xlim = [None, None]
         if xlim[0] is None:
-            xlim[0] = min([ data_file.min() for data_file in data_axis ])
+            xlim[0] = data_component.value.min()
         if xlim[1] is None:
-            xlim[1] = max([ data_file.max() for data_file in data_axis ])
+            xlim[1] = data_component.value.max()
 
-        # weights are used to normalize histogram
-        weights_axis = [ np.ones_like(data_file)/len(data_file)*scaling_factor_map[scaling.lower()] for data_file in data_axis ]
-        bins_axis    = np.linspace(xlim[0], xlim[1], n_bins+1)
+        # create bins
+        bins    = np.linspace(xlim[0], xlim[1], n_bins+1)
 
-        axis.hist(
-            x=data_axis,
-            bins=bins_axis,
-            weights=weights_axis,
-            edgecolor='black',
-            linewidth=1.2
+        sns.histplot(
+            data     = data_component,
+            x        = "value"      ,
+            stat     = stat         ,
+            hue      = 'name_source',
+            bins     = bins         ,
+            multiple = 'dodge'      ,
+            shrink   = 0.9          ,
+            ax       = axis
         )
 
-        # set a common graph properties
+        # set only one legend on the figure
+        axis.get_legend().set_visible(False)
         if col == 0:
-            axis.get_figure().legend(
-                labels         = labels        ,
-                ncol           = len(data_axis),
-                fontsize       = fontsize      ,
-                framealpha     = 0.0           ,
-                loc            = 'upper center',
-                bbox_to_anchor = (0.5, 1.0)
+            # handles, labels = axis.get_legend_handles_labels()
+            handles = axis.get_legend().legendHandles
+            labels  = [ text._text for text in axis.get_legend().texts]
+            axis.get_figure().legend(handles, labels)
+            sns.move_legend(
+                obj            = axis.get_figure()             ,
+                loc            = "upper center"                ,
+                bbox_to_anchor = (0.5, 1.0)                    ,
+                ncol           = len(data.name_source.unique()),
+                title          = None                          ,
+                frameon        = False                         ,
+                fontsize       = 20
             )
 
         # set only one y-label on the figure
         axis.set_ylabel('', fontsize=0)
         if col == 0:
-            axis.set_ylabel(scaling_name_map[scaling.lower()], fontsize=fontsize)
+            axis.set_ylabel(map_stat[stat], fontsize=fontsize)
         
-        # set individual graph properties
-        axis.set_xlabel(xlabel, fontsize=fontsize)
+        axis.set_xlabel(name_component, fontsize=fontsize)
         axis.set_xlim  (xlim)
         if not ylim is None: axis.set_ylim(ylim)
         axis.tick_params(axis='both', which='major', labelsize=fontsize)
@@ -209,55 +216,51 @@ def plot_histogram(
 
     return fig, axes
 
-def compare_statistics(inputs, save, figsize, dpi, rotate_ticks, scaling, fontsize, margin_shift_fraction, margin_axis_multiplier):
+def compare_statistics(inputs, save, fontsize, figsize, dpi, rotate_ticks, stat, margin_shift_fraction, margin_axis_multiplier):
 
     for statistic, properties in zip(inputs['statistics'], inputs['statistics'].values()):
     
-        # set up subplots (1 x n_titles)
-        dims = (1, len(properties['xlabels']))
-        figsize_current = [figsize[0]*len(properties['xlabels']), figsize[1]]
-        fig, axes = plt.subplots(nrows=dims[0],ncols=dims[1],sharex="row",figsize=figsize_current)
-        axes = np.array(axes).reshape(dims)
-        
-        # create the data array
-        data = []
+        # initialize the data array
+        data = pd.DataFrame()
+
         for source in properties['paths']:
 
-            path_file = properties['paths'][source]['file']
-            path_hdf5 = properties['paths'][source]['hdf5']
-
             # import the data
-            with h5py.File(path_file, 'r') as f:
+            with h5py.File(properties['paths'][source]['file'], 'r') as f:
                 # [1:] removes error data
-                file_data = f[path_hdf5][1:]
+                file_data = f[properties['paths'][source]['hdf5']][1:]
             # reshape adds component dimensions if necessary
             file_data = file_data.reshape((file_data.shape[0],-1))
-            # cut off data there are no labels for
+
+            # warn user that data there are no labels for will be cut off
             if file_data.shape[1] > len(properties['xlabels']):
                 print(f"WARNNG! more components than xlabels for {source}/{statistic}. Graphing only first {len(properties['xlabels'])} component(s)")
-            file_data = file_data[:,:len(properties['xlabels'])]
 
-            # initialize the data array if this is the first file
-            # otherwise append additional components as needed
-            if len(data) == 0:
-                data = [ [component] for component in file_data.T ]
-            else:
-                for component_number in range(file_data.shape[1]):
-                    data[component_number].append(file_data[:,component_number])
+            for component_data, component_name in zip(file_data.T, properties['xlabels']):
 
-            
-        plot_histogram(
-            data                   = data                 , 
-            labels                 = properties['paths']  ,
-            xlabels                = properties['xlabels'],
-            xlim                   = properties['xlim']   ,
-            ylim                   = properties['ylim']   ,
-            scaling                = scaling              ,
-            n_bins                 = properties['n_bins'] ,
-            fontsize               = fontsize             ,
-            figsize                = figsize              ,
-            rotate_ticks           = rotate_ticks         ,
-            margin_shift_fraction  = margin_shift_fraction,
+                # fill the data array
+                data = pd.concat(
+                    [
+                        data,
+                        pd.DataFrame({
+                            'value'         : component_data,
+                            'name_component': component_name,
+                            'name_source'   : source
+                        })
+                    ],
+                    ignore_index=True
+                )
+
+        fig, axes = plot_histogram(
+            data                   = data                  ,
+            xlim                   = properties['xlim']    ,
+            ylim                   = properties['ylim']    ,
+            n_bins                 = properties['n_bins']  ,
+            stat                   = stat                  ,
+            fontsize               = fontsize              ,
+            figsize                = figsize               ,
+            rotate_ticks           = rotate_ticks          ,
+            margin_shift_fraction  = margin_shift_fraction ,
             margin_axis_multiplier = margin_axis_multiplier
         )
 
@@ -266,6 +269,6 @@ def compare_statistics(inputs, save, figsize, dpi, rotate_ticks, scaling, fontsi
             plt.savefig(f"{out_path_base}_{statistic}.{file_type}", dpi=dpi)
         else:
             plt.show()
-        fig.clf
+        fig.clf()
 
-compare_statistics(data, save, figsize, dpi, rotate_ticks, scaling, fontsize, margin_shift_fraction, margin_axis_multiplier)
+compare_statistics(data, save, fontsize, figsize, dpi, rotate_ticks, stat, margin_shift_fraction, margin_axis_multiplier)
