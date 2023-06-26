@@ -158,14 +158,17 @@ def plot_histogram(
         bins    = np.linspace(xlim[0], xlim[1], n_bins+1)
 
         sns.histplot(
-            data     = data_component,
-            x        = "value"      ,
-            stat     = stat         ,
-            hue      = 'name_source',
-            bins     = bins         ,
-            multiple = 'dodge'      ,
-            shrink   = 0.9          ,
-            ax       = axis
+            data        = data_component,
+            x           = "value"       ,
+            stat        = stat          ,
+            hue         = 'name_source' ,
+            bins        = bins          ,
+            multiple    = 'dodge'       ,
+            common_norm = False         ,
+            shrink      = 0.8           ,
+            ax          = axis          ,
+            edgecolor   = 'k'           ,
+            linewidth   = 0
         )
 
         # set only one legend on the figure
