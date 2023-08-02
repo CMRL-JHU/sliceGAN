@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 
 
-output_path = "pipeline_output/07-compare_statistics.pdf"
+output_path = "pipeline_output/07-compare_statistics.eps"
 
 save         = True
 fontsize     = 20
@@ -29,7 +29,7 @@ data = {
                     "file": "pipeline_input/6-yz_small_cleaned_grains_feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/MisorientationList"
                 },
-                "Synthetic": {
+                "SEVM": {
                     "file": "pipeline_output/6-feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/MisorientationList"
                 }
@@ -45,7 +45,7 @@ data = {
                     "file": "pipeline_input/6-yz_small_cleaned_grains_feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/EquivalentDiameters"
                 },
-                "Synthetic": {
+                "SEVM": {
                     "file": "pipeline_output/6-feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/EquivalentDiameters"
                 }
@@ -61,7 +61,7 @@ data = {
                     "file": "pipeline_input/6-yz_small_cleaned_grains_feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/Volumes"
                 },
-                "Synthetic": {
+                "SEVM": {
                     "file": "pipeline_output/6-feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/Volumes"
                 }
@@ -77,7 +77,7 @@ data = {
         #             "file": "pipeline_input/6-yz_small_cleaned_grains_feature_attributes.dream3d",
         #             "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/AspectRatios"
         #         },
-        #         "Synthetic": {
+        #         "SEVM": {
         #             "file": "pipeline_output/6-feature_attributes.dream3d",
         #             "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/AspectRatios"
         #         }
@@ -93,7 +93,7 @@ data = {
                     "file": "pipeline_input/6-yz_small_cleaned_grains_feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/AspectRatios"
                 },
-                "Synthetic": {
+                "SEVM": {
                     "file": "pipeline_output/6-feature_attributes.dream3d",
                     "hdf5": "DataContainers/ImageDataContainer/CellFeatureData/AspectRatios"
                 }
@@ -175,7 +175,7 @@ def plot_histogram(
         axis.get_legend().set_visible(False)
         if col == 0:
             # handles, labels = axis.get_legend_handles_labels()
-            handles = axis.get_legend().legendHandles
+            handles = axis.get_legend().legend_handles
             labels  = [ text._text for text in axis.get_legend().texts]
             axis.get_figure().legend(handles, labels)
             sns.move_legend(
