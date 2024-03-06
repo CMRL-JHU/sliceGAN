@@ -55,4 +55,5 @@ Input/*.tif
 __pycache__/
 dream3d_support/pipeline_output/*
 postprocessing/pipeline_output/*
+postprocessing/pipieline_input/2-slicegan_data.2021-10-12*
 slurm*
