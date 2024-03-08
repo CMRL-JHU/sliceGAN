@@ -39,10 +39,6 @@ In the Input folder you can find some of the dream3D files used to generate a co
 
 ---
 
-## Testing
-
----
-
 ## Training
 
 Run the following command:
@@ -50,6 +46,7 @@ Run the following command:
 python ./run_slicegan.py 1 --inp=inputs_3d_mask.json
 ```
 or using the bash file slicegan.train.scr
+
 ---
 
 ## Generating
@@ -59,6 +56,7 @@ Run the following command:
 python ./run_slicegan.py 0 --inp=inputs_3d_mask.json
 ```
 or using the bash file slicegan.generate.scr
+
 ---
 
 ## References
