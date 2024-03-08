@@ -27,6 +27,15 @@ The original structure of the code was kepts. The main changes are:
 
 ---
 
+## Future developments:
+
+1. Add data augmentation (ada)
+2. Add regularization
+3. Add Adain
+4. Coupling with VAE and diffusion models
+
+---
+
 ## Results
 
 TODO
