@@ -1,24 +1,17 @@
 #!/bin/bash
+
+### slurm commands here
 #SBATCH --job-name=SliceGAN
-#SBATCH --partition=a100
-#SBATCH --time=30:00:00
-#SBATCH --nodes=1
-#SBATCH --gres=gpu:1
-#SBATCH --account=sghosh20_gpu
-#SBATCH --export=ALL
-#SBATCH --mail-type=begin
-#SBATCH --mail-type=end
-#SBATCH --mail-user=jsticke3@jhu.edu
 
 ### Import required libraries
-# Sometimes required to load modules
-source /data/apps/go.sh
-# Load required modules
-ml gcc/9.3.0 python/3.9.0 py-pip/20.2 cuda/11.1.0
-# Install python libraries locally
+
+### Load required modules using slurm
+# ml gcc/9.3.0 python/3.9.0 py-pip/20.2 cuda/11.1.0
+
+### Install python libraries locally
 pip-3 install --user matplotlib tifffile h5py
 pip-3 install --user torch==1.9.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 ### Run SliceGAN
-python3.6 -u ./run_slicegan.py 0
+python3.6 -u ./run_slicegan.py 0 --inp inputs_3d_mask.json
 
