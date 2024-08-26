@@ -1,3 +1,5 @@
+The developments of these code were done by Joshua Stickel and Brayan Murgas in the Computational Mechanics Research Laboratory (CMRL) under the supervision of prof. Somnath Ghosh at Johns Hopkins University. Baltimore, Maryland, USA.
+
 # SliceGAN
 
 This repository is a modification of the original SliceGAN code developed by Steve Kench and Samuel Cooper at Imperial College [1], [github link](https://github.com/stke9/SliceGAN/tree/master).
@@ -11,8 +13,6 @@ This code was tested and used using the following environment:
 - python 3.9.0
 - cuda 11.1.0
 - pytorch 1.9.0+cu111
-
-The developments of these code were done by Joshua Stickel and Brayan Murgas in the Computational Mechanics Research Laboratory (CMRL) under the supervision of prof. Somnath Ghosh at Johns Hopkins University. Baltimore, Maryland, USA.
 
 ---
 
